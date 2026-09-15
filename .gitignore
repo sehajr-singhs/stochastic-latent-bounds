@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+results/exp1_ckpt/
+results/probe_ckpt.pt
+results/exp1_quick.log
+probe_point.py
+probe_scale.py
+logs/
+nohup.out

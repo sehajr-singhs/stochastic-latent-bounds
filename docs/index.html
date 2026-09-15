@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>stochastic-latent-bounds</title>
+  <meta name="description" content="Sound stochastic Lyapunov certificates for high-dimensional physical systems via invertible latent transports">
+  <style>
+    :root {
+      --ink: #1a1a1a; --muted: #6b6b6b; --line: #e5e5e5;
+      --accent: #c62f2f; --blue: #33608c; --bg: #ffffff;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; color: var(--ink); background: var(--bg);
+      font: 16px/1.65 "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 96px; }
+    header.site { border-bottom: 1px solid var(--line); padding: 28px 0 22px; margin-bottom: 40px; }
+    header.site h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+    header.site h1 a { color: var(--ink); text-decoration: none; }
+    header.site h1 .accent { color: var(--accent); }
+    header.site p.tag { margin: 0; color: var(--muted); font-size: 14.5px; }
+    nav.links { margin-top: 14px; font-size: 14px; }
+    nav.links a { color: var(--blue); text-decoration: none; margin-right: 18px; }
+    nav.links a:hover { text-decoration: underline; }
+    h2 { font-size: 19px; margin: 44px 0 10px; letter-spacing: -0.01em; }
+    h3 { font-size: 16px; margin: 28px 0 8px; }
+    p.lede { font-size: 17.5px; color: var(--ink); }
+    code, pre { font-family: var(--mono); font-size: 13.5px; }
+    code { background: #f6f6f6; padding: 1px 5px; border-radius: 3px; }
+    pre { background: #f6f6f6; padding: 14px 16px; border-radius: 6px; overflow-x: auto; line-height: 1.5; }
+    pre code { background: none; padding: 0; }
+    figure { margin: 26px 0 8px; }
+    figure img, figure svg { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
+    figcaption { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
+    table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 18px 0; }
+    th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: right; }
+    th:first-child, td:first-child { text-align: left; }
+    th { font-weight: 600; color: var(--muted); }
+    .badge { display: inline-block; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; margin-right: 6px; }
+    .muted { color: var(--muted); }
+    .formula { font-family: var(--mono); font-size: 14px; background: #fafafa; border-left: 3px solid var(--accent); padding: 10px 14px; margin: 14px 0; overflow-x: auto; }
+    footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    footer a { color: var(--blue); text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="site">
+  <h1><a href="index.html">stochastic&#8209;latent&#8209;bounds<span class="accent">.</span></a></h1>
+  <p class="tag">Sound stochastic Lyapunov certificates for high&#8209;dimensional physical systems, via invertible latent transports.</p>
+  <nav class="links">
+    <a href="results.html">Results</a>
+    <a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a>
+    <a href="api.html">API</a>
+  </nav>
+</header>
+
+<p class="lede">
+  A trained world model plus a learned diffeomorphism turn a stochastic physical
+  system into coordinates where a Lyapunov certificate is <em>searchable</em>: the
+  certificate is verified by interval branch&#8209;and&#8209;bound with sound bounds, not
+  assumed from sampling. Every published number on this site is produced by the
+  committed code and committed result files.
+</p>
+
+<p>
+  <span class="badge">stochastic Lyapunov</span>
+  <span class="badge">interval arithmetic</span>
+  <span class="badge">invertible transports</span>
+  <span class="badge">branch &amp; bound</span>
+  <span class="badge">world models</span>
+</p>
+
+<h2>The idea</h2>
+<p>
+  Classical Lyapunov certification does not scale: sum&#8209;of&#8209;squares and SMT
+  methods collapse under the curse of dimensionality, while neural Lyapunov
+  functions are usually validated only at sampled points. This framework
+  <strong>factors</strong> the state space with an exactly invertible transport
+  <code>T</code> into a low&#8209;dimensional certified factor &eta; and a transversal
+  residual &rho;. A certificate
+</p>
+<div class="formula">W(y) = V(&eta;) + &kappa; &rho;&#7481; Q &rho;, &nbsp;&nbsp; L W + &alpha; W &le; &beta; + tol</div>
+<p>
+  is then verified over a region by branch&#8209;and&#8209;bound where the bound on
+  <code>L W + &alpha; W</code> is computed with sound enclosures: an exact interval
+  Ito trace <code>&frac12; tr(B B&#7481; Hess W)</code> with <code>B = J T(x) &Sigma;(x)</code>,
+  <b>centered (mean&#8209;value) drift bounds</b> &mdash; the residual is evaluated exactly at
+  the box center and the deviation bounded by a Jacobian enclosure with exact zeros where the
+  factorised residual is structurally independent and Lipschitz balls elsewhere, so the
+  remainder is <em>quadratic</em> in box radius &mdash; and outward rounding everywhere. Both
+  choices make the bound converge under subdivision (raw interval propagation is linear and
+  certifies nothing at region scale); the interval trace even converges to the exact
+  generator on degenerate boxes, which is what makes certification near the origin possible
+  at all.
+</p>
+
+<h2>The noise floor, honestly</h2>
+<p>
+  With additive process noise the origin is <em>not</em> an equilibrium of the SDE:
+  paths leave it immediately, so <code>L W(0) = &frac12; tr(B B&#7481; Hess W)(0) = &beta; &gt; 0</code>
+  and the classical condition <code>L W + &alpha; W &le; 0</code> certifies the empty set, always.
+  The attainable statement is the thresholded certificate
+</p>
+<div class="formula">L W + &alpha; W &le; &beta; + tol &nbsp;&Longrightarrow;&nbsp; E[W(t)] &le; e&#8315;&#8311;t W(0) + ((&beta;+tol)/&alpha;)(1 &minus; e&#8315;&#8311;t)</div>
+<p>
+  i.e. exponential practical stability to an explicit noise ball of stationary
+  radius <code>(&beta; + tol)/&alpha;</code>. <code>&beta;</code> is evaluated exactly at the origin;
+  <code>tol</code> is explicit slack, reported rather than hidden.
+</p>
+
+<h2>What is verified, what is measured</h2>
+<ul>
+  <li><strong>Soundness</strong> is tested directly: across random boxes the sound bound must dominate the exact generator at every sampled interior point, and any box the verifier declares certified must satisfy the certificate at every sampled point (<code>tests/test_soundness.py</code>).</li>
+  <li><strong>Tightness</strong> is tested directly: a point box at the origin must reproduce &beta; to 1e-6 &mdash; an assertion the Cauchy&#8209;Schwarz bound structurally cannot pass.</li>
+  <li><strong>The world model</strong> is scored against the analytic Ito push&#8209;forward of the real plant, so the learned&#8209;vs&#8209;exact gap is measured, including the Ito correction term most latent models silently absorb.</li>
+  <li><strong>Online adaptation</strong> runs a shadow network behind a certified acceptance gate; unsafe swaps after a drift change are counted against the exact plant generator, so the gate's value is falsifiable.</li>
+</ul>
+
+<h2>Quick start</h2>
+<pre><code>git clone https://github.com/sehajr-singhs/stochastic-latent-bounds
+cd stochastic-latent-bounds
+pip install torch pytest
+
+# soundness + tightness test suite (CPU, float64)
+python -m pytest tests/ -q
+
+# headline experiments (checkpointed; see experiments/)
+python experiments/exp1_main.py          # factor vs full scaling
+python experiments/exp2_shadow.py        # gated hot-swap under plant drift
+python experiments/exp3_tightness.py     # tight trace vs Cauchy-Schwarz
+python tools/figures.py                  # regenerate the figures from results/</code></pre>
+
+<h2>Results</h2>
+<figure>
+  <img src="assets/fig1_tightness.svg" alt="Tightness sweep: bound excess over the noise floor versus box width">
+  <figcaption>
+    Excess of the sound bound over the noise floor &beta; on shrinking boxes around
+    the origin (log&#8209;log). The Cauchy&#8209;Schwarz Ito bound has irreducible slack and
+    certifies nothing at any radius; the tight interval trace converges to the
+    exact generator and certifies up to the tolerance line.
+  </figcaption>
+</figure>
+<p>
+  Full tables, the scaling comparison and the hot&#8209;swap traces are on the
+  <a href="results.html">results page</a>. All numbers are loaded from
+  <code>results/*.json</code> committed next to the code that produced them.
+</p>
+
+<footer>
+  stochastic-latent-bounds &mdash; built as a working demonstration of
+  certifiable world models. Code and results:
+  <a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">github.com/sehajr-singhs/stochastic-latent-bounds</a>
+</footer>
+
+</div>
+</body>
+</html>
