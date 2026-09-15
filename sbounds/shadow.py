@@ -67,7 +67,6 @@ def _clone_pair(V, F):
     return copy.deepcopy(V), copy.deepcopy(F)
 
 
-@torch.no_grad()
 def true_violation_probe(V, F, transport, system: ChainArm, kappa: float, alpha: float,
                          d_eta: int, y_probe: torch.Tensor, beta: float | None = None,
                          tol: float = 0.0) -> dict:

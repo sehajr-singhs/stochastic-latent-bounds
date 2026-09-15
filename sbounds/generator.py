@@ -56,6 +56,7 @@ def noise_floor(V, F, transport, system, kappa: float, d_eta: int) -> float:
     return float(beta[0])
 
 
+@torch.enable_grad()
 def latent_generator(V, F, transport, system, kappa: float, alpha: float, d_eta: int,
                      eta: torch.Tensor, rho: torch.Tensor, F_fn=None,
                      create_graph: bool = False, need_grad: bool = False):
