@@ -39,16 +39,41 @@ def _mm_exact_batched(Jlo: torch.Tensor, Jhi: torch.Tensor, dev: Iv) -> Iv:
 
 
 class LyapunovNet(torch.nn.Module):
-    """Positive-definite-by-construction Lyapunov function on the latent factor."""
+    """Positive-definite-by-construction Lyapunov function on the latent factor.
+
+    With use_residual=True the residual terms are trainable and the whole
+    function is shaped by the certificate loss. With use_residual=False the
+    function is the FIXED quadratic V = 1/2 eta^T P eta with P = p_scale^2 I:
+    nothing is learned in V, and the certificate training instead shapes the
+    latent *dynamics* F so the fixed V satisfies the decrease condition. Two
+    reasons this mode exists, both forced by measurement, not taste:
+
+      * non-vacuity: with a free P the decrease loss can shrink V toward zero,
+        making beta = L W(0) arbitrarily small and the certificate trivially
+        satisfiable while saying nothing. A fixed P anchors W's scale to the
+        latent coordinates, so beta is pinned to O(sigma^2 tr P) > 0.
+      * certifiability: the sound drift bound pays ||Hess V|| * |F| * r^2 per
+        cell. A residual-shaped V grew Hess V to ~17 and that term to ~4e3; a
+        fixed quadratic V has Hess V = P exactly (zero interval width), which
+        removes the term's constant almost entirely.
+    """
 
     def __init__(self, d: int, width: int = 32, depth: int = 2, n_res: int = 16,
-                 act: str = "tanh", eps: float = 1e-3, seed: int = 0):
+                 act: str = "tanh", eps: float = 1e-3, seed: int = 0,
+                 use_residual: bool = True, p_scale: float = 1.0):
         super().__init__()
         self.d = d
         self.eps = float(eps)
-        self.A = torch.nn.Parameter(torch.eye(d, dtype=torch.float64) * 0.5)
-        self.c = torch.nn.Parameter(torch.full((n_res,), -2.0, dtype=torch.float64))
-        self.res = MLP(d, n_res, width, depth, act, "linear", seed=seed)
+        self.use_residual = bool(use_residual)
+        if use_residual:
+            self.A = torch.nn.Parameter(torch.eye(d, dtype=torch.float64) * 0.5)
+            self.c = torch.nn.Parameter(torch.full((n_res,), -2.0, dtype=torch.float64))
+            self.res = MLP(d, n_res, width, depth, act, "linear", seed=seed)
+        else:
+            # fixed metric: buffers, not parameters -- V is not learned at all
+            self.register_buffer("A", torch.eye(d, dtype=torch.float64) * float(p_scale))
+            self.register_buffer("c", torch.zeros(0, dtype=torch.float64))
+            self.res = None
 
     @property
     def P(self) -> torch.Tensor:
@@ -59,8 +84,10 @@ class LyapunovNet(torch.nn.Module):
 
     def forward(self, eta: torch.Tensor) -> torch.Tensor:
         P = self.P
-        n = self.res(eta) - self.res(self._eta0(eta))
         quad = 0.5 * ((eta @ P) * eta).sum(-1)
+        if not self.use_residual:
+            return quad
+        n = self.res(eta) - self.res(self._eta0(eta))
         return quad + (torch.nn.functional.softplus(self.c) * n ** 2).sum(-1)
 
     def value_at_origin(self, ref: torch.Tensor) -> torch.Tensor:
@@ -74,26 +101,29 @@ class LyapunovNet(torch.nn.Module):
         Returns (V Iv[(B,)], grad Iv[(B,d)], hess Iv[(B,d,d)]).
         """
         B, d = lo.shape
-        res_val, res_jac, res_hess = self.res.jet(lo, hi)      # (B,R), (B,R,d), (B,R,d,d)
-        res0 = self.res(torch.zeros(d, dtype=lo.dtype)).detach()
-        n_val = _round(res_val - res0)                          # Iv (B,R)
-        a = torch.nn.functional.softplus(self.c).detach()       # (R,)
         eta = Iv(lo, hi)
         P = self.P.detach()
         Peta = iv_matmul(P, eta)
         # elementwise product then reduce, explicitly per bound
         prod = eta * Peta
         quad = Iv((prod.lo).sum(-1), (prod.hi).sum(-1))
-        n_sq = n_val.sq()
-        V = _round(0.5 * quad + Iv((n_sq.lo * a).sum(-1), (n_sq.hi * a).sum(-1)))
-
+        V = _round(0.5 * quad)
         grad = iv_matmul(P, eta)
+        P_b = P.expand(B, d, d).contiguous()
+        # fixed quadratic V: Hess is exactly P on every box (zero width)
+        hess = Iv(P_b.clone(), P_b.clone())
+        if not self.use_residual:
+            return V, grad, hess
+        res_val, res_jac, res_hess = self.res.jet(lo, hi)      # (B,R), (B,R,d), (B,R,d,d)
+        res0 = self.res(torch.zeros(d, dtype=lo.dtype)).detach()
+        n_val = _round(res_val - res0)                          # Iv (B,R)
+        a = torch.nn.functional.softplus(self.c).detach()       # (R,)
+        n_sq = n_val.sq()
+        V = _round(V + Iv((n_sq.lo * a).sum(-1), (n_sq.hi * a).sum(-1)))
         for j in range(self.res.n_out):
             nj = n_val[:, j:j + 1]
             gj = res_jac[:, j, :]
             grad = grad + _round((2.0 * a[j]) * (nj * gj))
-        P_b = P.expand(B, d, d).contiguous()
-        hess = Iv(P_b.clone(), P_b.clone())
         for j in range(self.res.n_out):
             gj = res_jac[:, j, :]
             outer = _mul_iv(gj.unsqueeze(-1), gj.unsqueeze(-2))
@@ -122,21 +152,30 @@ class LatentDynamics(torch.nn.Module):
         if d_eta is None:
             self.res = MLP(dim, dim, width, depth, act, "linear", seed=seed)
         else:
-            # Factorised residual: the certified factor's rows read ONLY the
-            # factor coordinates. The eta-rows of the residual are then exactly
-            # rho-independent, which is the structural property the sound
-            # centered bounds need (a Jacobian enclosure with a zero block
-            # instead of a Lipschitz ball over the transversal coordinates).
+            # Cascade (skew-product) residual: BOTH blocks read only the factor
+            # coordinates eta; the rho rows see rho only through the trained
+            # linear block A. This is the classical cascade structure under
+            # which a Lyapunov argument on the factor closes. It is not a
+            # stylistic choice: with res_rho reading the full y, the sound
+            # coupling bound b_Q = sup ||Q (A_re eta + g_rho)|| had to enclose
+            # g_rho with a Lipschitz ball over the whole transversal ball
+            # (|y| up to ~r), which made b_Q independent of the eta box and the
+            # completing-the-square rho term irreducible -- no subdivision could
+            # ever certify. In cascade form g_rho = g_rho(eta) scales with the
+            # eta box and the rho bound shrinks under subdivision like every
+            # other term.
             self.res_eta = MLP(d_eta, d_eta, max(width // 2, 16), depth, act, "linear", seed=seed)
-            self.res_rho = MLP(dim, dim - d_eta, width, depth, act, "linear", seed=seed + 1)
+            self.res_rho = MLP(d_eta, dim - d_eta, width, depth, act, "linear", seed=seed + 1)
 
     def _residual(self, y: torch.Tensor, y_ref: torch.Tensor) -> torch.Tensor:
         """res(y) - res(y_ref), zero at y = y_ref by construction."""
         d = self.dim
         if self.d_eta is None:
             return self.res(y) - self.res(y_ref)
-        de = self.res_eta(y[..., :self.d_eta]) - self.res_eta(y_ref[..., :self.d_eta])
-        dr = self.res_rho(y) - self.res_rho(y_ref)
+        e = y[..., :self.d_eta]
+        er = y_ref[..., :self.d_eta]
+        de = self.res_eta(e) - self.res_eta(er)
+        dr = self.res_rho(e) - self.res_rho(er)
         return torch.cat([de, dr], dim=-1)
 
     def residual(self, y: torch.Tensor, y_ref: torch.Tensor | None = None) -> torch.Tensor:
@@ -185,23 +224,23 @@ class LatentDynamics(torch.nn.Module):
         if self.d_eta is None:
             L = spectral_norm_bound(self.res)
             Jlo = torch.full_like(J, -L)
+            Jhi = torch.full_like(J, L)
         else:
             L_eta = spectral_norm_bound(self.res_eta)
             L_rho = spectral_norm_bound(self.res_rho)
-            row_e = (torch.arange(d) < self.d_eta).view(1, d, 1)
             col_e = (torch.arange(d) < self.d_eta).view(1, 1, d)
-            # eta rows: d res_eta / d rho = 0 exactly; d res_eta / d eta = Lipschitz ball
-            Jlo = torch.where(row_e & col_e, torch.full_like(J, -L_eta),
-                              torch.where(row_e, torch.zeros_like(J),
-                                          torch.full_like(J, -L_rho)))
-        Jhi = -Jlo                                   # symmetric enclosure
+            row_e = (torch.arange(d) < self.d_eta).view(1, d, 1)
+            # cascade residual: every row reads only eta -- exact zeros on the
+            # rho columns, per-row Lipschitz balls on the eta columns
+            Lrow = torch.where(row_e, torch.full_like(J, L_eta), torch.full_like(J, L_rho))
+            Jlo = torch.where(col_e, -Lrow, torch.zeros_like(J))
+            Jhi = torch.where(col_e, Lrow, torch.zeros_like(J))
         dev = Iv(lo - c, hi - c)                     # exact: y - c over the box
         rem = _mm_exact_batched(Jlo, Jhi, dev)
         res_iv = _round(Iv(res_c.detach() + rem.lo, res_c.detach() + rem.hi))
         res0 = self._residual(zero, zero).detach()   # exact zero-centring constant
         return _round(lin + res_iv - res0)
 
-    @torch.no_grad()
     @torch.no_grad()
     def ibp_box_chunked(self, lo: torch.Tensor, hi: torch.Tensor, chunk: int = 512) -> tuple:
         outs_lo, outs_hi = [], []

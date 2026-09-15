@@ -271,6 +271,8 @@ class CertConfig:
     alpha: float = 0.05
     kappa: float = 1.0
     region_scale: float = 1.0
+    v_res_cap: float = 1.0           # spectral cap on V's residual feature net
+    v_coef_cap: float = 1.0          # cap on the residual coefficients a_j
     log_every: int = 200
     seed: int = 0
 
@@ -288,7 +290,20 @@ def train_certificate(V: LyapunovNet, F: LatentDynamics, transport, system: Chai
     of assuming away.
     """
     torch.manual_seed(cfg.seed)
-    opt = torch.optim.Adam(list(V.parameters()) + list(F.parameters()), lr=cfg.lr)
+    fixed_V = not getattr(V, "use_residual", True)
+    if fixed_V:
+        # The certificate is the fixed quadratic 1/2 eta^T P eta. What is
+        # learned is the latent dynamics: the training signal is exactly the
+        # decrease violation of the fixed V under the learned F and the
+        # transport. This is the honest form of the method's pitch -- learn a
+        # coordinate frame in which a simple certificate works -- and it
+        # removes both pathologies measured in earlier runs: a free P shrinking
+        # toward zero (vacuous beta) and residual-shaped curvature exploding
+        # the sound bound (||Hess V|| ~ 17).
+        params = list(F.parameters())
+    else:
+        params = list(V.parameters()) + list(F.parameters())
+    opt = torch.optim.Adam(params, lr=cfg.lr)
     hist = {"viol_frac": [], "max_gen": [], "loss": [], "beta": []}
     gen = torch.Generator().manual_seed(cfg.seed + 7)
     scale = transport.x_scale * cfg.region_scale
@@ -328,10 +343,24 @@ def train_certificate(V: LyapunovNet, F: LatentDynamics, transport, system: Chai
             loss = pen.mean()
         opt.zero_grad()
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(list(V.parameters()) + list(F.parameters()), 5.0)
+        torch.nn.utils.clip_grad_norm_(params, 5.0)
         opt.step()
-        spectral_project(V, 4.0)
+        if not fixed_V:
+            spectral_project(V, 4.0)
         spectral_project(F, 4.0)
+        # The verifier's drift bound pays |Hess V| * |F| * r^2 per cell: V's
+        # curvature IS the certificate's certification cost. Left uncapped, the
+        # optimizer happily buys pointwise margin by growing steep residual
+        # terms, and the sound bound then needs ~10^5 cells to see the margin.
+        # Capping the feature net's spectral norm and the coefficients is the
+        # training-side half of the method: learn a V the verifier can afford.
+        if not fixed_V and cfg.v_res_cap > 0:
+            spectral_project(V.res, cfg.v_res_cap)
+        if not fixed_V and cfg.v_coef_cap > 0:
+            with torch.no_grad():
+                # softplus^{-1}(cap): c_j such that softplus(c_j) <= cap
+                import math as _math
+                V.c.clamp_(max=_math.log(_math.expm1(cfg.v_coef_cap)))
         rd = resid.detach()
         hist["viol_frac"].append(float((rd > beta).to(torch.float64).mean()))
         hist["max_gen"].append(float((rd - beta).max()))

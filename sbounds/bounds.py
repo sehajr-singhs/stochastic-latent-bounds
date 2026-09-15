@@ -222,17 +222,19 @@ def _drift_centered(F, lo: torch.Tensor, hi: torch.Tensor, d_eta: int) -> tuple:
     if F.d_eta is None:
         L = spectral_norm_bound(F.res)
         Jlo = torch.full_like(J, -L)
+        Jhi = torch.full_like(J, L)
     else:
         L_eta = spectral_norm_bound(F.res_eta)
         L_rho = spectral_norm_bound(F.res_rho)
-        row_e = (torch.arange(d) < d_eta).view(1, d, 1)
         col_e = (torch.arange(d) < d_eta).view(1, 1, d)
-        # eta rows: no rho dependence (exact zeros); Lipschitz ball on the eta block.
-        Jlo = torch.where(row_e & col_e, torch.full_like(J, -L_eta),
-                          torch.where(row_e, torch.zeros_like(J),
-                                      torch.full_like(J, -L_rho)))
+        row_e = (torch.arange(d) < d_eta).view(1, d, 1)
+        # cascade residual: every row reads only eta -- exact zeros on the rho
+        # columns, per-row Lipschitz balls on the eta columns
+        Lrow = torch.where(row_e, torch.full_like(J, L_eta), torch.full_like(J, L_rho))
+        Jlo = torch.where(col_e, -Lrow, torch.zeros_like(J))
+        Jhi = torch.where(col_e, Lrow, torch.zeros_like(J))
     dev = Iv(lo - c, hi - c)
-    rem_res = _mm_exact_batched(Jlo, -Jlo, dev)          # Jhi = -Jlo by construction
+    rem_res = _mm_exact_batched(Jlo, Jhi, dev)
     lin_rem = iv_matmul(F.A.detach(), dev)
     rem = Iv(lin_rem.lo + rem_res.lo, lin_rem.hi + rem_res.hi)
     F_c = (c @ F.A.detach().T + res_c.detach())
@@ -271,17 +273,22 @@ def _coupling_norms(F, y_iv: Iv, d_eta: int, Q: torch.Tensor) -> torch.Tensor:
     """
     A = F.A.detach()
     Are = A[d_eta:, :d_eta]
-    m = F.dim - d_eta
     eta_iv = Iv(y_iv.lo[..., :d_eta], y_iv.hi[..., :d_eta])
     lin = iv_matmul(Are, eta_iv)                         # (B, m), tight in eta
     zero = torch.zeros(F.dim, dtype=y_iv.lo.dtype)
     c = y_iv.mid
     res_c = F.residual_rho(c, zero, d_eta)             # (B, m)
     J = _res_jac(F, c, rows=slice(d_eta, None))        # (B, m, D), exact
-    L = spectral_norm_bound(F.res_rho) if getattr(F, "d_eta", None) is not None \
+    # cascade residual: the rho rows read only eta, so the deviation enclosure
+    # has exact zeros on the rho columns and scales with the eta box only --
+    # this is the property that makes b_Q shrink under eta-subdivision.
+    L_rho = spectral_norm_bound(F.res_rho) if getattr(F, "d_eta", None) is not None \
         else spectral_norm_bound(F.res)
+    col_e = (torch.arange(F.dim) < d_eta).view(1, 1, F.dim)
+    Jlo = torch.where(col_e, torch.full_like(J, -L_rho), torch.zeros_like(J))
+    Jhi = torch.where(col_e, torch.full_like(J, L_rho), torch.zeros_like(J))
     dev = Iv(y_iv.lo - c, y_iv.hi - c)                 # (B, D)
-    rem = _mm_exact_batched(torch.full_like(J, -L), torch.full_like(J, L), dev)  # (B, m)
+    rem = _mm_exact_batched(Jlo, Jhi, dev)             # (B, m)
     g = Iv(res_c.detach() + rem.lo, res_c.detach() + rem.hi)
     total = iv_matmul(Q, Iv(lin.lo + g.lo, lin.hi + g.hi))
     return torch.sqrt((total.absmax ** 2).sum(-1).clamp_min(0.0))
@@ -423,7 +430,7 @@ def bound_factor(V, F, transport, system, kappa: float, alpha: float, d_eta: int
     A_rr = F.A.detach()[d_eta:, d_eta:]
     resid = (A_rr.T @ Q + Q @ A_rr + torch.eye(Q.shape[0], dtype=Q.dtype)).abs().max()
     if float(resid) > 1e-6:
-        inf = torch.full((B,), float("inf"), dtype=Q.dtype)
+        inf = torch.full((4,), float("inf"), dtype=Q.dtype)
         return BoundResult(inf, inf.clone(), inf.clone(), inf.clone(), inf.clone(),
                            inf.clone(), inf.clone())
     lam_Q = float(torch.linalg.eigvalsh(Q).max())

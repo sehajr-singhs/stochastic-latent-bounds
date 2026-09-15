@@ -2,8 +2,9 @@
 
 Factor-mode certification searches only the d-dimensional eta box while the
 transversal residual rho is handled in closed form; full-mode certification
-searches the entire D-dimensional box. Same certificate function W, same region,
-same sound bound family. The claim under test is that factor mode certifies a
+searches the entire D-dimensional box. Same certificate function W (the FIXED
+quadratic 1/2 eta^T P eta over the learned latent factor), same region, same
+sound bound family. The claim under test is that factor mode certifies a
 comparable fraction of the region at a fraction of the node cost as D grows.
 
 Everything is checkpointed: a run that dies can be re-run and skips finished
@@ -80,11 +81,14 @@ def build_and_train(n_links: int, d_eta: int, sigma: float, alpha: float,
                                           torch.full((D - d_eta,), rho_radius / (D - d_eta) ** 0.5,
                                                      dtype=torch.float64)]))
 
-    V = LyapunovNet(d_eta, width=32, depth=2, n_res=16, seed=seed)
+    # The certificate is the FIXED quadratic V = 1/2 eta^T P eta (p_scale = 1):
+    # see LyapunovNet's docstring for why this mode is the sound default.
+    V = LyapunovNet(d_eta, use_residual=False, p_scale=1.0, seed=seed)
     t1 = time.time()
     cert_hist = train_certificate(V, F, transport, system, d_eta,
                                   CertConfig(steps=cert_steps, alpha=alpha, kappa=kappa,
-                                             seed=seed), verbose=verbose)
+                                             seed=seed, v_res_cap=1.0, v_coef_cap=0.05),
+                                  verbose=verbose)
     t_cert = time.time() - t1
     metric = F.refresh_rho_metric(d_eta)
     import numpy as _np
@@ -150,7 +154,7 @@ def main() -> None:
     else:
         sizes = [(4, 2), (6, 3), (8, 4), (10, 4)]
         wm_steps, cert_steps, n_traj = 1500, 1200, 4000
-        node_budget, time_budget = 6000, 600.0
+        node_budget, time_budget = 30000, 2400.0
 
     rows = []
     for n_links, d_eta in sizes:
