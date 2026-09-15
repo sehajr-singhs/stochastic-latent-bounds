@@ -92,7 +92,9 @@
   Ito trace <code>&frac12; tr(B B&#7481; Hess W)</code> with <code>B = J T(x) &Sigma;(x)</code>,
   <b>centered (mean&#8209;value) drift bounds</b> &mdash; the residual is evaluated exactly at
   the box center and the deviation bounded by a Jacobian enclosure with exact zeros where the
-  factorised residual is structurally independent and Lipschitz balls elsewhere, so the
+  factorised residual is a <b>cascade</b> (every row reads only the factor coordinates),
+  the remainder is structurally independent of the transversal coordinates; Lipschitz balls
+  cover the rest, so the
   remainder is <em>quadratic</em> in box radius &mdash; and outward rounding everywhere. Both
   choices make the bound converge under subdivision (raw interval propagation is linear and
   certifies nothing at region scale); the interval trace even converges to the exact

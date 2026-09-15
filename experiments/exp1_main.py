@@ -153,8 +153,11 @@ def main() -> None:
         node_budget, time_budget = 1500, 240.0
     else:
         sizes = [(4, 2), (6, 3), (8, 4), (10, 4)]
-        wm_steps, cert_steps, n_traj = 1500, 1200, 4000
-        node_budget, time_budget = 30000, 2400.0
+        wm_steps, cert_steps, n_traj = 1200, 900, 2400
+        # 12k nodes per mode: on the local box the factor-mode evaluation is
+        # ~0.25 s/cell, so this is the largest budget that finishes in hours;
+        # on a faster box the numbers only improve.
+        node_budget, time_budget = 12000, 3600.0
 
     rows = []
     for n_links, d_eta in sizes:

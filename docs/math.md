@@ -100,8 +100,10 @@ The verifier computes a **sound upper bound** on `sup_region (L W + alpha W)` pe
 
 - `grad_eta V` and `Hess V` as interval enclosures (interval forward-mode AD, ternary
   jets per unit with outward rounding; `V.bounds`).
-- `F` as an interval enclosure (`A y` exactly through interval linear map + IBP through
-  the residual MLP).
+- `F` as an interval enclosure (`A y` exactly through interval linear map + a centered
+  (mean-value) remainder through the residual MLP; the residual is a **cascade** — every
+  row reads only the factor coordinates `eta`, so the Jacobian enclosure has exact zeros
+  on the `rho` columns and the transversal remainder scales with the `eta` box).
 - `B B^T` as an interval matrix: the transport's interval Jacobian `J T` (exact interval
   chain rule through each coupling layer) composed with an exact interval `Sigma`.
 - The Ito term as the **interval trace** `1/2 tr(BB^T Hess W)`: elementwise interval
