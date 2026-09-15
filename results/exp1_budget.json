@@ -1,0 +1,60 @@
+{
+  "protocol": {
+    "budget0": 4030,
+    "target": 0.8,
+    "cap_budget": 32240
+  },
+  "rows": [
+    {
+      "tag": "arm4_d2",
+      "n_links": 4,
+      "D": 8,
+      "d_eta": 2,
+      "beta": 7.579880368275356e-05,
+      "tol": 0.05,
+      "threshold": 0.05007579880368276,
+      "lam_Q": 0.7210152662982748,
+      "cert_viol_frac": 0.0,
+      "ladder": [
+        {
+          "budget": 4030,
+          "factor": {
+            "certified_fraction": 0.6494140624999999,
+            "nodes": 4030,
+            "seconds": 381.7789263725281,
+            "worst_upper": 0.2049290501756571,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 4030,
+            "seconds": 46.65581297874451,
+            "worst_upper": 67.99366727214674,
+            "fully_certified": false
+          },
+          "seconds_factor": 381.7789263725281,
+          "seconds_full": 46.65581297874451
+        },
+        {
+          "budget": 8060,
+          "factor": {
+            "certified_fraction": 0.6494140624999999,
+            "nodes": 8062,
+            "seconds": 757.5417749881744,
+            "worst_upper": 0.20492797532786108,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 8062,
+            "seconds": 94.55640435218811,
+            "worst_upper": 63.644490272058874,
+            "fully_certified": false
+          },
+          "seconds_factor": 757.5417749881744,
+          "seconds_full": 94.55640435218811
+        }
+      ]
+    }
+  ]
+}

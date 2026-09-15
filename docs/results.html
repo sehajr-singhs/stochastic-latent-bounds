@@ -69,10 +69,18 @@
 <tr><td>naive</td><td>8</td><td>0</td><td>8</td><td>1.000</td><td>0</td><td>49</td></tr>
 </table>
 <figure><img src="assets/fig3_shadow.svg" alt="Probe violation fraction over the stream. The plant's damping halves halfway through; the sound gate swaps only what the interval bound certifies, the naive gate swaps everything."><figcaption>Probe violation fraction over the stream. The plant's damping halves halfway through; the sound gate swaps only what the interval bound certifies, the naive gate swaps everything.</figcaption></figure>
+<h2>4. Effort ladder: budget needed to reach equal quality (exp1b)</h2>
+<p>Node budget is doubled per rung and <em>both</em> modes re-certified at every rung, so the comparison stays equal-effort. The stop rule is factor mode reaching the target fraction (or the budget cap); the ladder itself is the claim: the effort factor mode needs is set by the latent dimension d, while full mode does not finish at any affordable budget once D grows.</p>
+<table>
+<tr><th>arm</th><th>node budget</th><th>factor cert. frac.</th><th>full cert. frac.</th></tr>
+<tr><td>arm4_d2 (D=8, d=2)</td><td>4030</td><td>0.649</td><td>0.000</td></tr>
+<tr><td>arm4_d2 (D=8, d=2)</td><td>8060</td><td>0.649</td><td>0.000</td></tr>
+</table>
 <h2>How to reproduce</h2>
 <ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
 <li><code>python experiments/exp2_shadow.py</code> &mdash; reuses the <code>arm4_d2</code> checkpoint from exp1.</li>
+<li><code>python experiments/exp1_budget.py</code> &mdash; equal-quality budget ladder over the exp1 checkpoints.</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, tightness, invertibility, metric, push&#8209;forward tests.</li>
 </ul>

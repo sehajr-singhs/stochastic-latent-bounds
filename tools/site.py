@@ -170,10 +170,34 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp2.json not present.</p>')
 
+    o.append("<h2>4. Effort ladder: budget needed to reach equal quality (exp1b)</h2>")
+    db = _load("exp1_budget.json")
+    if db:
+        o.append(
+            "<p>Node budget is doubled per rung and <em>both</em> modes re-certified at "
+            "every rung, so the comparison stays equal-effort. The stop rule is factor "
+            "mode reaching the target fraction (or the budget cap); the ladder itself is "
+            "the claim: the effort factor mode needs is set by the latent dimension "
+            "d, while full mode does not finish at any affordable budget once D grows.</p>")
+        rows = []
+        for r in db["rows"]:
+            for lvl in r["ladder"]:
+                rows.append([
+                    f"{r['tag']} (D={r['D']}, d={r['d_eta']})",
+                    str(lvl["budget"]),
+                    _fmt(lvl["factor"]["certified_fraction"]),
+                    _fmt(lvl["full"]["certified_fraction"]),
+                ])
+        o.append(_table(["arm", "node budget", "factor cert. frac.",
+                         "full cert. frac."], rows))
+    else:
+        o.append('<p class="muted">results/exp1_budget.json not present.</p>')
+
     o.append("<h2>How to reproduce</h2>")
     o.append("""<ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
 <li><code>python experiments/exp2_shadow.py</code> &mdash; reuses the <code>arm4_d2</code> checkpoint from exp1.</li>
+<li><code>python experiments/exp1_budget.py</code> &mdash; equal-quality budget ladder over the exp1 checkpoints.</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, tightness, invertibility, metric, push&#8209;forward tests.</li>
 </ul>""")
