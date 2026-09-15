@@ -157,7 +157,7 @@ def main() -> None:
         # 12k nodes per mode: on the local box the factor-mode evaluation is
         # ~0.25 s/cell, so this is the largest budget that finishes in hours;
         # on a faster box the numbers only improve.
-        node_budget, time_budget = 12000, 3600.0
+        node_budget, time_budget = 4000, 900.0
 
     rows = []
     for n_links, d_eta in sizes:
