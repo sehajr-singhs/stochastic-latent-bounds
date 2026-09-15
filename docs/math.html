@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The mathematics - stochastic-latent-bounds</title>
+<style>
+    :root { --ink:#1a1a1a; --muted:#6b6b6b; --line:#e5e5e5; --accent:#c62f2f; --blue:#33608c; --mono:"SFMono-Regular",Consolas,Menlo,monospace; }
+    * { box-sizing: border-box; }
+    body { margin:0; color:var(--ink); background:#fff; font:16px/1.65 "Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+    .wrap { max-width:800px; margin:0 auto; padding:0 24px 96px; }
+    header.site { border-bottom:1px solid var(--line); padding:28px 0 22px; margin-bottom:36px; }
+    header.site h1 { font-size:22px; margin:0 0 4px; }
+    header.site h1 a { color:var(--ink); text-decoration:none; }
+    nav.links { margin-top:14px; font-size:14px; }
+    nav.links a { color:var(--blue); text-decoration:none; margin-right:18px; }
+    h1, h2, h3 { letter-spacing:-0.01em; }
+    h2 { font-size:19px; margin:38px 0 10px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+    code { font-family:var(--mono); font-size:13px; background:#f6f6f6; padding:1px 5px; border-radius:3px; }
+    pre { background:#f6f6f6; padding:14px 16px; border-radius:6px; overflow-x:auto; }
+    pre code { background:none; padding:0; }
+    footer { margin-top:64px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="site">
+  <h1><a href="index.html">stochastic&#8209;latent&#8209;bounds</a></h1>
+  <nav class="links"><a href="index.html">Overview</a><a href="results.html">Results</a><a href="api.html">API</a><a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a></nav>
+</header>
+<h1 id="the-mathematics-of-the-certificate">The mathematics of the certificate</h1>
+<p>This document states exactly what is claimed, what is verified by search, and what is
+measured. Notation: the physical state is <code>x</code> in <code>R^D</code>, the transport maps <code>y = T(x)</code>
+with <code>T</code> an exactly invertible diffeomorphism and <code>T(x*) = 0</code> at the equilibrium; the
+latent split is <code>y = (eta, rho)</code> with <code>eta</code> in <code>R^d</code> the certified factor and <code>rho</code> in
+<code>R^m</code> the transversal residual (<code>m = D - d</code>).</p>
+<h2 id="1-the-physical-system">1. The physical system</h2>
+<p>An N-link planar arm with point masses at the link tips under gravity-compensated PD
+control, with process noise in the velocity block:</p>
+<pre><code>M(theta) theta_ddot + c(theta, theta_dot) + G(theta) = tau,
+tau = G(theta) - Kp theta - Kd theta_dot,
+dx = f(x) dt + Sigma(x) dW
+</code></pre>
+<p>with</p>
+<pre><code>M_ij = A_ij l_i l_j cos(theta_i - theta_j),  A_ij = sum_{k &gt;= max(i,j)} m_k
+c_i  = sum_j A_ij l_i l_j sin(theta_i - theta_j) theta_dot_j^2
+G_i  = g A_i l_i sin(theta_i)
+</code></pre>
+<p>The gravity-compensation construction makes <code>x* = 0</code> an <strong>exact</strong> equilibrium of the
+noiseless closed loop, so the certificate's target is not approximate. The diffusion is
+axis-aligned in velocity coordinates (<code>additive</code>: <code>Sigma = sigma [[0],[I]]</code>;
+<code>state_dependent</code>: <code>diag(sigma(1+|w|))</code>), and <code>Sigma</code> has <code>n_links</code> Wiener channels.</p>
+<p>The analytic Ito push-forward of the physical SDE under <code>y = T(x)</code>,</p>
+<pre><code>dy = ( J_T f + 1/2 tr(Sigma^T H_T Sigma) ) dt + J_T Sigma dW
+</code></pre>
+<p>is evaluated with autograd and used <strong>only</strong> to score the learned world model — never
+inside the certificate.</p>
+<h2 id="2-the-learned-objects-and-their-by-construction-properties">2. The learned objects and their by-construction properties</h2>
+<p><strong>Transport</strong> (<code>sbounds.transport</code>): RealNVP-style affine coupling layers with
+tanh-bounded log-scales, so <code>exp(s)</code> lives in a known compact interval, the Jacobian is
+never degenerate, and <code>T(x) = R((x-x*)/x_scale) - R(0)</code> satisfies <code>T(x*) = 0</code> exactly.
+Invertibility is exact (unit test to 1e-9).</p>
+<p><strong>Lyapunov factor</strong> (<code>sbounds.models.LyapunovNet</code>):</p>
+<pre><code>V(eta) = 1/2 eta^T P eta + sum_j softplus(c_j) * n_j(eta)^2,   P = A A^T + eps I
+n_j(eta) = res_j(eta) - res_j(0)
+</code></pre>
+<p><code>P</code> is positive definite by construction; <code>n_j(0) = 0</code>; <code>softplus(c_j) &gt;= 0</code>. Hence
+<code>V</code> is positive definite and radially unbounded — not by penalty, by construction.</p>
+<p><strong>Latent drift</strong> (<code>sbounds.models.LatentDynamics</code>): <code>F(y) = A y + (res(y) - res(0))</code>,
+so <code>F(0) = 0</code> exactly.</p>
+<p><strong>Transversal metric</strong>: <code>Q</code> solves the Lyapunov equation <code>A_rr^T Q + Q A_rr = -I</code> for the
+learned rho block, giving <code>2 kappa rho^T Q F_rho</code> the exact term <code>-kappa ||rho||^2</code>. Note
+that lambda_max of the symmetric part of <code>A_rr</code> is <em>useless</em> as a contraction test for a
+mechanical system: in position-velocity coordinates the symmetric part of any damped
+mechanical linearisation has a non-negative largest eigenvalue. Contraction must be
+measured through a metric; that is what <code>Q</code> is for.</p>
+<h2 id="3-the-certificate">3. The certificate</h2>
+<p>With <code>B(x) = J T(x) Sigma(x)</code> and <code>W(y) = V(eta) + kappa rho^T Q rho</code>:</p>
+<pre><code>L W(y) = grad_eta V . F_eta + 2 kappa rho^T Q F_rho
+         + 1/2 [ tr(BB^T_{eta,eta} Hess V) + 2 kappa tr(BB^T_{rho,rho} Q) ]
+</code></pre>
+<p><strong>Noise floor.</strong> Additive process noise means the origin is not an equilibrium of the
+SDE, so <code>L W(0) = 1/2 tr(BB^T Hess W)(0) = beta &gt; 0</code> necessarily (grad W(0) = 0 and
+F(0) = 0 kill the drift term). The classical <code>L W + alpha W &lt;= 0</code> is unattainable —
+demanding it certifies the empty set. The certificate is the thresholded condition</p>
+<pre><code>L W(y) + alpha W(y) &lt;= beta + tol   for all y in the region
+</code></pre>
+<p>which by Ito's formula for <code>W(y_t)</code> gives, for <code>y_0</code> in the region,</p>
+<pre><code>E[W(y_t)] &lt;= e^{-alpha t} W(y_0) + ((beta + tol)/alpha)(1 - e^{-alpha t})
+</code></pre>
+<p>exponential practical stability to the explicit noise ball of stationary radius
+<code>(beta + tol)/alpha</code>. <code>beta</code> is evaluated exactly (autograd at the origin);
+<code>tol</code> is explicit slack, reported.</p>
+<h2 id="4-what-the-search-actually-bounds">4. What the search actually bounds</h2>
+<p>The verifier computes a <strong>sound upper bound</strong> on <code>sup_region (L W + alpha W)</code> per box:</p>
+<ul>
+<li><code>grad_eta V</code> and <code>Hess V</code> as interval enclosures (interval forward-mode AD, ternary
+  jets per unit with outward rounding; <code>V.bounds</code>).</li>
+<li><code>F</code> as an interval enclosure (<code>A y</code> exactly through interval linear map + a centered
+  (mean-value) remainder through the residual MLP; the residual is a <strong>cascade</strong> — every
+  row reads only the factor coordinates <code>eta</code>, so the Jacobian enclosure has exact zeros
+  on the <code>rho</code> columns and the transversal remainder scales with the <code>eta</code> box).</li>
+<li><code>B B^T</code> as an interval matrix: the transport's interval Jacobian <code>J T</code> (exact interval
+  chain rule through each coupling layer) composed with an exact interval <code>Sigma</code>.</li>
+<li>The Ito term as the <strong>interval trace</strong> <code>1/2 tr(BB^T Hess W)</code>: elementwise interval
+  products contain the true products; sums of intervals contain the true sum. Sound —
+  and equal to the exact trace on degenerate boxes, so it converges under refinement.</li>
+<li>The rho drift term in factor mode: splitting <code>F_rho = A_rr rho + (A_re eta + g_rho)</code>
+  and bounding <code>b_Q = sup ||Q(A_re eta + g_rho)||</code>, completing the square gives
+  <code>2 kappa rho^T Q F_rho &lt;= kappa max_{s&lt;=r} (-s^2 + 2 s b_Q) = kappa b_Q^2</code> once the
+  ball radius <code>r &gt;= b_Q</code> — independent of <code>r</code>, which the naive split (linear in <code>r</code>)
+  never achieves.</li>
+</ul>
+<p>Two modes search the <strong>same</strong> region with the <strong>same</strong> bound family:</p>
+<ul>
+<li><code>full</code>: all <code>D</code> coordinates are subdivided by branch-and-bound;</li>
+<li><code>factor</code>: only the <code>d</code> eta-coordinates are subdivided; rho is handled by the closed
+  form above plus the exact interval trace.</li>
+</ul>
+<p>The reported certified fraction is a <strong>one-sided lower bound</strong>: a box counts only when
+its sound upper bound is <code>&lt;= beta + tol</code>; unresolved boxes are unknown, never certified.</p>
+<h2 id="5-the-tightness-failure-mode-why-c-s-certifies-nothing">5. The tightness failure mode (why C-S certifies nothing)</h2>
+<p>Cauchy–Schwarz gives <code>1/2 tr(BB^T H) &lt;= 1/2 ||B||_F^2 ||Hess W||_F</code>. The slack of this
+bound is bounded away from zero as the box shrinks to the origin — measured: at a box of
+half-width 1e-3 the excess over <code>beta</code> is ~0.22 vs ~1e-4 for the interval trace. Since
+the certificate constant is <code>beta + tol</code> with small <code>tol</code>, C-S certifies <em>no box at any
+radius</em>, while the tight trace certifies every box up to an explicit radius. This is the
+load-bearing numerical fact of the repo, and it is both measured (<code>exp3</code>) and unit-tested
+(point box at the origin must reproduce <code>beta</code> to 1e-6).</p>
+<h2 id="6-counterexamples-vs-looseness">6. Counterexamples vs looseness</h2>
+<p>A failing <em>bound</em> is not a failing <em>certificate</em>: interval branching fails for two
+reasons that must be separated.</p>
+<ul>
+<li><em>genuine violation</em>: some point in the box really has <code>L W + alpha W &gt; beta + tol</code>;</li>
+<li><em>bound looseness</em>: the box's sound upper bound exceeds the threshold although no point
+  does.</li>
+</ul>
+<p><code>sbounds.cegis</code> splits unresolved boxes, samples inside them, and evaluates the exact
+generator (autograd) at those points; both counts are reported, because the share of
+failures that are looseness is the honest measure of how much of the certification
+budget is spent on the bound rather than on the system. Retraining uses only genuine
+violations, against either the model drift or the exact push-forward oracle.</p>
+<h2 id="7-certified-online-adaptation">7. Certified online adaptation</h2>
+<p>Two certificate/model pairs are alive: the active (certified) pair and a shadow pair
+training online on fresh plant data. A candidate swap is accepted only if the sound
+bound certifies the shadow pair over the region at threshold <code>beta + tol</code>. Unsafe swaps
+are counted by evaluating the <em>exact plant</em> generator (push-forward oracle) on fixed
+probe points after the swap — so the gate's value is a falsifiable number, not a
+design assertion. If the gate keeps rejecting (plant drifted out of scope), the region
+shrinks and that time is reported.</p>
+<h2 id="8-what-is-deliberately-loose">8. What is deliberately loose</h2>
+<ul>
+<li>The interval Jacobian chain rule composes interval matrices without exploiting
+  correlations — sound, not minimal.</li>
+<li>The rho ball is over-covered by its axis-aligned box when bounding coupling norms.</li>
+<li><code>Sigma</code> for <code>actuator</code> noise is not intervalised (it would need the interval inverse
+  of a state-dependent inertia); those runs fall back to the C-S bound and say so.</li>
+<li>All interval outputs are inflated outward by 1e-12 relative (≈4000 ulps float64).</li>
+</ul>
+<footer>Rendered from <code>docs/math.md</code> in the repository &mdash; the markdown file is authoritative.</footer>
+</div>
+</body>
+</html>

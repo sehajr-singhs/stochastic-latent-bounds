@@ -44,16 +44,24 @@
 <p>N-link arm (<code>n_links=4</code>, latent factor <code>d=2</code>). Noise floor <code>&beta; = 0.00680</code>, tolerance <code>tol = 0.05</code>, so the certificate constant is <code>&beta;+tol = 0.05680</code> and the guaranteed noise-ball radius is <code>(&beta;+tol)/&alpha; = 0.2840</code>.</p>
 <table>
 <tr><th>box half&#8209;width w</th><th>tight upper</th><th>C-S upper</th><th>tight &minus; &beta;</th><th>C-S &minus; &beta;</th><th>tight certifies (&le;&beta;+tol)</th><th>C-S certifies (&le;&beta;+tol)</th></tr>
-<tr><td>0.001</td><td>0.0069</td><td>0.2275</td><td>0.0001</td><td>0.2207</td><td>yes</td><td><b>no</b></td></tr>
-<tr><td>0.003</td><td>0.0073</td><td>0.2282</td><td>0.0005</td><td>0.2214</td><td>yes</td><td><b>no</b></td></tr>
-<tr><td>0.01</td><td>0.0120</td><td>0.2340</td><td>0.0052</td><td>0.2272</td><td>yes</td><td><b>no</b></td></tr>
-<tr><td>0.03</td><td>0.0543</td><td>0.2795</td><td>0.0475</td><td>0.2727</td><td>yes</td><td><b>no</b></td></tr>
-<tr><td>0.1</td><td>0.5511</td><td>0.7909</td><td>0.5443</td><td>0.7841</td><td><b>no</b></td><td><b>no</b></td></tr>
-<tr><td>0.3</td><td>5.0744</td><td>5.3769</td><td>5.0676</td><td>5.3701</td><td><b>no</b></td><td><b>no</b></td></tr>
+<tr><td>0.001</td><td>0.0069</td><td>0.2276</td><td>0.0001</td><td>0.2208</td><td>yes</td><td><b>no</b></td></tr>
+<tr><td>0.003</td><td>0.0075</td><td>0.2285</td><td>0.0007</td><td>0.2217</td><td>yes</td><td><b>no</b></td></tr>
+<tr><td>0.01</td><td>0.0150</td><td>0.2370</td><td>0.0082</td><td>0.2302</td><td>yes</td><td><b>no</b></td></tr>
+<tr><td>0.03</td><td>0.0825</td><td>0.3077</td><td>0.0756</td><td>0.3009</td><td><b>no</b></td><td><b>no</b></td></tr>
+<tr><td>0.1</td><td>0.9324</td><td>1.1722</td><td>0.9256</td><td>1.1654</td><td><b>no</b></td><td><b>no</b></td></tr>
+<tr><td>0.3</td><td>11.4042</td><td>11.7067</td><td>11.3974</td><td>11.6999</td><td><b>no</b></td><td><b>no</b></td></tr>
 </table>
 <figure><img src="assets/fig1_tightness.svg" alt="Bound excess over the noise floor versus box half-width (log-log). The Cauchy&#8209;Schwarz bound's excess is bounded away from zero; the tight interval trace vanishes as the box shrinks."><figcaption>Bound excess over the noise floor versus box half-width (log-log). The Cauchy&#8209;Schwarz bound's excess is bounded away from zero; the tight interval trace vanishes as the box shrinks.</figcaption></figure>
 <h2>2. Certified volume vs dimension (exp1)</h2>
-<p class="muted">results/exp1.json not present.</p>
+<table>
+<tr><th>D</th><th>d (&eta;)</th><th>&beta;</th><th>factor cert. frac.</th><th>full cert. frac.</th><th>nodes fac/full</th><th>seconds fac/full</th><th>world&#8209;model rel. err</th><th>&lambda;&#8342;</th><th>metric ok</th></tr>
+<tr><td>8</td><td>2</td><td>0.0001</td><td>0.649</td><td>0.000</td><td>4030 / 4030</td><td>883 / 136</td><td>0.2082</td><td>0.721</td><td>yes</td></tr>
+<tr><td>12</td><td>3</td><td>0.0002</td><td>0.000</td><td>0.000</td><td>4030 / 4030</td><td>898 / 112</td><td>0.1772</td><td>0.626</td><td>yes</td></tr>
+<tr><td>16</td><td>4</td><td>0.0003</td><td>0.000</td><td>0.000</td><td>1982 / 4030</td><td>910 / 231</td><td>0.2326</td><td>0.571</td><td>yes</td></tr>
+<tr><td>20</td><td>4</td><td>0.0008</td><td>0.000</td><td>0.000</td><td>1278 / 4030</td><td>932 / 370</td><td>0.3302</td><td>1.270</td><td>yes</td></tr>
+</table>
+<figure><img src="assets/fig2_scaling.svg" alt="Certified fraction of the region under the same node and time budget. Factor mode searches only the d-dimensional &eta;-box; full mode searches all D coordinates."><figcaption>Certified fraction of the region under the same node and time budget. Factor mode searches only the d-dimensional &eta;-box; full mode searches all D coordinates.</figcaption></figure>
+<div class="formula">certificate: L W + &alpha; W &le; &beta; + tol &nbsp;(&alpha;=0.05, &kappa;=1.0, &sigma;=0.05, tol=0.05)</div>
 <h2>3. Gated online hot&#8209;swap (exp2)</h2>
 <p class="muted">results/exp2.json not present.</p>
 <h2>How to reproduce</h2>

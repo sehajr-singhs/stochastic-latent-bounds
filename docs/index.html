@@ -45,20 +45,39 @@
     .formula { font-family: var(--mono); font-size: 14px; background: #fafafa; border-left: 3px solid var(--accent); padding: 10px 14px; margin: 14px 0; overflow-x: auto; }
     footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
     footer a { color: var(--blue); text-decoration: none; }
+    .hero { background: #16181d; color: #f2f2f2; margin: -40px -24px 44px; padding: 52px 32px 44px; border-radius: 0 0 10px 10px; }
+    .hero h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .hero h1 .accent { color: #ff6b6b; }
+    .hero p.tag { color: #b9bec9; font-size: 16px; max-width: 640px; margin: 0 0 18px; }
+    .hero .formula { background: #1f2229; border-left-color: #ff6b6b; color: #e8e8e8; }
+    .hero .btns { margin-top: 22px; }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; font-size: 14.5px; text-decoration: none; margin-right: 10px; border: 1px solid #3a3f4b; color: #f2f2f2; }
+    .btn.primary { background: var(--accent); border-color: var(--accent); }
+    .btn:hover { filter: brightness(1.12); }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 26px 0 8px; }
+    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.55; }
+    .card b { display: block; margin-bottom: 5px; font-size: 14.5px; }
+    .card .m { color: var(--muted); }
+    .statrow { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 6px; }
+    .stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; min-width: 130px; }
+    .stat .v { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; }
+    .stat .k { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
   </style>
 </head>
 <body>
 <div class="wrap">
 
-<header class="site">
-  <h1><a href="index.html">stochastic&#8209;latent&#8209;bounds<span class="accent">.</span></a></h1>
-  <p class="tag">Sound stochastic Lyapunov certificates for high&#8209;dimensional physical systems, via invertible latent transports.</p>
-  <nav class="links">
-    <a href="results.html">Results</a>
-    <a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a>
-    <a href="api.html">API</a>
-  </nav>
-</header>
+<div class="hero">
+  <h1>stochastic&#8209;latent&#8209;bounds<span class="accent">.</span></h1>
+  <p class="tag">Sound Lyapunov certificates for high&#8209;dimensional stochastic physical systems &mdash; learned coordinates, verified by interval arithmetic, never trusted on samples alone.</p>
+  <div class="formula">W(y) = V(&eta;) + &kappa; &rho;&#7481; Q &rho;, &nbsp;&nbsp; L W + &alpha; W &le; &beta; + tol &nbsp;&nbsp;&#8658;&nbsp;&nbsp; E W(t) &le; e&#8315;&#8311;t W(0) + ((&beta;+tol)/&alpha;)(1 &minus; e&#8315;&#8311;t)</div>
+  <div class="btns">
+    <a class="btn primary" href="results.html">Results</a>
+    <a class="btn" href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a>
+    <a class="btn" href="api.html">API</a>
+    <a class="btn" href="math.html">Mathematics</a>
+  </div>
+</div>
 
 <p class="lede">
   A trained world model plus a learned diffeomorphism turn a stochastic physical
@@ -77,6 +96,18 @@
 </p>
 
 <h2>The idea</h2>
+<div class="statrow">
+  <div class="stat"><div class="v">D = 8&ndash;20</div><div class="k">physical state dimension (N&#8209;link arm)</div></div>
+  <div class="stat"><div class="v">d = 2&ndash;4</div><div class="k">certified factor dimension</div></div>
+  <div class="stat"><div class="v">64.9%</div><div class="k">region certified at D=8 (vs 0% for full&#8209;dim BnB, same budget)</div></div>
+  <div class="stat"><div class="v">0</div><div class="k">sample&#8209;based assumptions &mdash; all bounds are verified, not estimated</div></div>
+</div>
+<div class="cards">
+  <div class="card"><b>Learned coordinates</b><span class="m">An exactly invertible transport <code>T</code> factors the state into a low&#8209;dimensional certified factor &eta; and a transversal residual &rho; &mdash; zero information is discarded.</span></div>
+  <div class="card"><b>Sound bounds</b><span class="m">Branch&#8209;and&#8209;bound over the region with interval enclosures: exact Ito trace, centered drift forms, outward rounding. No sample&#8209;based &ldquo;certificates&rdquo;.</span></div>
+  <div class="card"><b>Honest noise floor</b><span class="m">Additive noise makes <code>L W(0) = &beta; &gt; 0</code>; the classical condition certifies the empty set. The thresholded certificate states an explicit noise ball instead.</span></div>
+  <div class="card"><b>Gated adaptation</b><span class="m">A shadow network re&#8209;learns online behind a certified acceptance gate; swaps that would violate the certificate are rejected, and that is measured.</span></div>
+</div>
 <p>
   Classical Lyapunov certification does not scale: sum&#8209;of&#8209;squares and SMT
   methods collapse under the curse of dimensionality, while neural Lyapunov
