@@ -1,0 +1,169 @@
+{
+  "drift": "kd halved at round rounds//2",
+  "gates": {
+    "sound": {
+      "accepted": 0,
+      "rejected": 8,
+      "unsafe_swaps": 0,
+      "unsafe_swap_fraction": 0.0,
+      "fallback_rounds": 2,
+      "rounds": [
+        {
+          "round": 0,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 70.03026880263351,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 1,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 69.86787187622755,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 2,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 69.23338069186589,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 3,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 66.95273625611938,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 4,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 68.15762172058581,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        },
+        {
+          "round": 5,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 67.85994075435988,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        },
+        {
+          "round": 6,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 66.59772706952819,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        },
+        {
+          "round": 7,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 65.79251511812674,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        }
+      ],
+      "seconds": 1506.4752390384674
+    },
+    "naive": {
+      "accepted": 8,
+      "rejected": 0,
+      "unsafe_swaps": 8,
+      "unsafe_swap_fraction": 1.0,
+      "fallback_rounds": 0,
+      "rounds": [
+        {
+          "round": 0,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 1,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 2,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 3,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.4947916666666667,
+          "max_resid_after": 2183.9795508401676,
+          "unsafe": true
+        },
+        {
+          "round": 4,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        },
+        {
+          "round": 5,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        },
+        {
+          "round": 6,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        },
+        {
+          "round": 7,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.5078125,
+          "max_resid_after": 1890.232162741894,
+          "unsafe": true
+        }
+      ],
+      "seconds": 49.20298981666565
+    }
+  }
+}

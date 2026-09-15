@@ -63,7 +63,12 @@
 <figure><img src="assets/fig2_scaling.svg" alt="Certified fraction of the region under the same node and time budget. Factor mode searches only the d-dimensional &eta;-box; full mode searches all D coordinates."><figcaption>Certified fraction of the region under the same node and time budget. Factor mode searches only the d-dimensional &eta;-box; full mode searches all D coordinates.</figcaption></figure>
 <div class="formula">certificate: L W + &alpha; W &le; &beta; + tol &nbsp;(&alpha;=0.05, &kappa;=1.0, &sigma;=0.05, tol=0.05)</div>
 <h2>3. Gated online hot&#8209;swap (exp2)</h2>
-<p class="muted">results/exp2.json not present.</p>
+<table>
+<tr><th>gate</th><th>accepted</th><th>rejected</th><th>unsafe swaps</th><th>unsafe fraction</th><th>fallback rounds</th><th>seconds</th></tr>
+<tr><td>sound</td><td>0</td><td>8</td><td>0</td><td>0.000</td><td>2</td><td>1506</td></tr>
+<tr><td>naive</td><td>8</td><td>0</td><td>8</td><td>1.000</td><td>0</td><td>49</td></tr>
+</table>
+<figure><img src="assets/fig3_shadow.svg" alt="Probe violation fraction over the stream. The plant's damping halves halfway through; the sound gate swaps only what the interval bound certifies, the naive gate swaps everything."><figcaption>Probe violation fraction over the stream. The plant's damping halves halfway through; the sound gate swaps only what the interval bound certifies, the naive gate swaps everything.</figcaption></figure>
 <h2>How to reproduce</h2>
 <ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
