@@ -8,3 +8,5 @@ probe_point.py
 probe_scale.py
 logs/
 nohup.out
+results/*.log
+results/*.pt
