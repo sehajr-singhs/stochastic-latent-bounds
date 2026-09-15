@@ -47,10 +47,10 @@ composed with an exact interval `Sigma`) and contracts it against the interval H
 is *linear* in box width and its slack exceeds the threshold even after millions of BnB
 nodes; the verifier therefore uses **centered (mean-value) forms**: the residual is evaluated
 exactly at the box center and the deviation bounded through a Jacobian enclosure whose
-entries are exact zeros (**the residual is a cascade: every row reads only the
-factor coordinates eta** — enforced structurally, and the load-bearing property:
-it is what makes the rho coupling bound shrink under eta-subdivision) and Lipschitz balls elsewhere, so the
-hard projection during training) or spectral-norm Lipschitz balls. The remainder is
+entries are exact zeros on the transversal columns — **the residual is a cascade: every
+row reads only the factor coordinates eta**, enforced structurally, and this is the
+load-bearing property that makes the rho coupling bound shrink under eta-subdivision —
+and spectral-norm Lipschitz balls elsewhere. The remainder is
 *quadratic* in box radius, which is what makes branch-and-bound converge. Both claims are
 unit-tested.
 

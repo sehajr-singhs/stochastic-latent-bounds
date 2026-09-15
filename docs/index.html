@@ -91,11 +91,10 @@
   <code>L W + &alpha; W</code> is computed with sound enclosures: an exact interval
   Ito trace <code>&frac12; tr(B B&#7481; Hess W)</code> with <code>B = J T(x) &Sigma;(x)</code>,
   <b>centered (mean&#8209;value) drift bounds</b> &mdash; the residual is evaluated exactly at
-  the box center and the deviation bounded by a Jacobian enclosure with exact zeros where the
-  factorised residual is a <b>cascade</b> (every row reads only the factor coordinates),
-  the remainder is structurally independent of the transversal coordinates; Lipschitz balls
-  cover the rest, so the
-  remainder is <em>quadratic</em> in box radius &mdash; and outward rounding everywhere. Both
+  the box center and the deviation bounded by a Jacobian enclosure. Because the residual is
+  a <b>cascade</b> (every row reads only the factor coordinates &eta;), the enclosure has
+  exact zeros on the transversal columns and the remainder is <em>quadratic</em> in box
+  radius &mdash; and outward rounding everywhere. Both
   choices make the bound converge under subdivision (raw interval propagation is linear and
   certifies nothing at region scale); the interval trace even converges to the exact
   generator on degenerate boxes, which is what makes certification near the origin possible
