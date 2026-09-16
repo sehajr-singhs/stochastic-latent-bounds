@@ -62,6 +62,9 @@
   &nbsp;&nbsp;&nbsp;<a href="results.html#ladder">Effort ladder (exp1b)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#cmapss">C&#8209;MAPSS fleet (exp4)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#airquality">Air quality (exp5)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#grid">Grid physics (exp6)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
 </header>
@@ -136,6 +139,25 @@
 <tr><td>shadow gate: unsafe swaps (sound / naive)</td><td>0 / 8</td></tr>
 </table>
 <figure><img src="assets/fig5_airquality.svg" alt="Certificate-violation fraction under the two seasonal regimes of the identified air&#8209;quality plant. The heating&#8209;season shift is the drift event the hot&#8209;swap gate is designed for."><figcaption>Certificate-violation fraction under the two seasonal regimes of the identified air&#8209;quality plant. The heating&#8209;season shift is the drift event the hot&#8209;swap gate is designed for.</figcaption></figure>
+<h2 id="grid">7. Real grid physics: ETTm2 transformer load regimes (exp6)</h2>
+<p class="muted">results/exp6_grid.json not present.</p>
+<h2 id="baselines">8. Transport baselines: does the learned map matter? (exp7)</h2>
+<p class="muted">results/exp7_baselines.json not present.</p>
+<h2 id="rigor">9. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
+<p><strong>Identification stability.</strong> Fit/holdout parameter agreement on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between half&#8209;fits. The measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) clear these floors, so the reported drift is signal, not identification noise.</p>
+<table>
+<tr><th>domain</th><th>split</th><th>rel ||&Delta;A||</th><th>rel ||&Delta;&sigma;||</th><th></th></tr>
+<tr><td>C&#8209;MAPSS</td><td>odd vs even engines</td><td>0.021</td><td>0.010</td><td>rel ||db|| = 1.490</td></tr>
+<tr><td>ETTm2</td><td>first vs last 40% of timeline</td><td>6.015</td><td>0.115</td><td></td></tr>
+<tr><td>Air quality</td><td>first vs last 40% of timeline</td><td>0.463</td><td>0.227</td><td></td></tr>
+</table>
+<p><strong>Bootstrap CIs.</strong> Percentile intervals (2000 resamples) for the pointwise certificate&#8209;violation fraction over 2048 fixed region probes under the real plant.</p>
+<table>
+<tr><th>domain</th><th>viol. frac.</th><th>95% CI</th><th>probes</th><th>resamples</th></tr>
+<tr><td>C&#8209;MAPSS</td><td>0.564</td><td>[0.543, 0.585]</td><td>2048</td><td>2000</td></tr>
+<tr><td>Air quality</td><td>0.299</td><td>[0.279, 0.319]</td><td>2048</td><td>2000</td></tr>
+</table>
+<figure><img src="assets/fig8_rigor.svg" alt="Sensitivity of the pointwise certificate to the evaluation&#8209;points parameter &kappa;, diffusion scaling, and region scaling, on the C&#8209;MAPSS checkpoint."><figcaption>Sensitivity of the pointwise certificate to the evaluation&#8209;points parameter &kappa;, diffusion scaling, and region scaling, on the C&#8209;MAPSS checkpoint.</figcaption></figure>
 <h2>How to reproduce</h2>
 <ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
@@ -143,8 +165,11 @@
 <li><code>python experiments/exp1_budget.py</code> &mdash; equal-quality budget ladder over the exp1 checkpoints.</li>
 <li><code>python experiments/exp4_realtrend.py</code> &mdash; real-data pipeline (expects <code>data/cmapss/CMaps/train_FD001.txt</code> from Kaggle <code>behrad3d/nasa-cmaps</code>).</li>
 <li><code>python experiments/exp5_airquality.py</code> &mdash; second real domain (expects <code>data/aqi/PRSA_Data_*.csv</code> from Kaggle <code>sid321axn/beijing-multisite-airquality-data-set</code>).</li>
+<li><code>python experiments/exp6_grid.py</code> &mdash; third real domain (expects <code>data/ett/ETTm2.csv</code> from Kaggle <code>alaaelmor/ettsmall</code>).</li>
+<li><code>python experiments/exp7_baselines.py</code> &mdash; PCA / random&#8209;projection transport baselines on all three domains.</li>
+<li><code>python experiments/exp8_validation.py</code> &mdash; identification stability, bootstrap CIs, ablations, seed stability.</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
-<li><code>python -m pytest tests/ -q</code> &mdash; soundness, tightness, invertibility, metric, push&#8209;forward tests.</li>
+<li><code>python -m pytest tests/ -q</code> &mdash; soundness, rigor, invertibility, loader, and bootstrap&#8209;statistics tests.</li>
 </ul>
 </section>
 

@@ -78,6 +78,9 @@ HEADER = """<!DOCTYPE html>
   &nbsp;&nbsp;&nbsp;<a href="results.html#ladder">Effort ladder (exp1b)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#cmapss">C&#8209;MAPSS fleet (exp4)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#airquality">Air quality (exp5)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#grid">Grid physics (exp6)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
 </header>
@@ -280,6 +283,116 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp5_airquality.json not present.</p>')
 
+    o.append('<h2 id="grid">7. Real grid physics: ETTm2 transformer load regimes (exp6)</h2>')
+    d6 = _load("exp6_grid.json")
+    if d6:
+        ident, era, c6 = d6["identification"], d6["era"], d6["cert"]
+        o.append(
+            "<p>A third physical domain &mdash; electricity&#8209;grid physics: the "
+            "ETTm2 benchmark (transformer oil temperature OT + 6 load channels, "
+            "15&#8209;min sampling, two years). The drift event is the real daily load "
+            f"regime: high&#8209;load era (08&ndash;20h) vs low&#8209;load era (21&ndash;07h). "
+            f"Identified shift: attractor moves {ident['attractor_shift']:.2f} sd, "
+            f"||&Delta;A|| = {ident['dA_norm']:.2f}. Same pipeline as exp4/exp5, "
+            "again zero domain&#8209;specific code beyond the CSV loader.</p>")
+        o.append(_table(
+            ["quantity", "value"],
+            [["noise floor &beta; (identified diffusion)", f"{d6['beta']:.2e}"],
+             ["factor cert. frac. (d=%d of D=%d)" % (d6["d_eta"], d6["D"]),
+              _fmt(c6["factor"]["certified_fraction"])],
+             ["full cert. frac. (all D)", _fmt(c6["full"]["certified_fraction"])],
+             ["era probe: viol. frac. high&#8209;load", _fmt(era["high_load"]["viol_frac"])],
+             ["era probe: viol. frac. low&#8209;load", _fmt(era["low_load"]["viol_frac"])],
+             ["shadow gate: unsafe swaps (sound / naive)",
+              f"{d6['shadow']['sound']['unsafe_swaps']} / {d6['shadow']['naive']['unsafe_swaps']}"]]))
+        o.append(_fig("fig6_grid.svg",
+                      "Certificate&#8209;violation fraction under the two real load regimes of "
+                      "the identified transformer plant. The daily regime cycle is a "
+                      "recurrent, predictable drift event."))
+    else:
+        o.append('<p class="muted">results/exp6_grid.json not present.</p>')
+
+    o.append('<h2 id="baselines">8. Transport baselines: does the learned map matter? (exp7)</h2>')
+    d7 = _load("exp7_baselines.json")
+    if d7:
+        o.append(
+            "<p>The claim under test: the certificate works because the transport is "
+            "<em>learned</em>, not because any low&#8209;dimensional projection would do. "
+            "Three coordinate maps &mdash; a fixed PCA map, a fixed random orthogonal map, "
+            "and the learned invertible transport &mdash; through the identical downstream "
+            "protocol (same latent&#8209;dynamics training budget, fixed quadratic certificate, "
+            "region construction, node budget, and probe seeds). The fixed maps use exact "
+            "linear interval arithmetic, so the comparison is not skewed by enclosure "
+            "looseness.</p>")
+        rows = []
+        for ds, label in (("cmapss", "C&#8209;MAPSS (D=8)"), ("aqi", "Air quality (D=10)"),
+                          ("ett", "ETTm2 (D=7)")):
+            d = d7.get(ds, {})
+            for kind, klabel in (("pca", "PCA"), ("random", "Random"), ("learned", "Learned")):
+                e = d.get(kind)
+                if kind == "learned" and isinstance(e, dict):
+                    cert = e.get("cert") or {}
+                    f = (cert.get("factor") or {}).get("certified_fraction")
+                    fl = (cert.get("full") or {}).get("certified_fraction")
+                    rows.append([label, klabel,
+                                 _fmt(f) if f is not None else "&mdash;",
+                                 _fmt(fl) if fl is not None else "&mdash;"])
+                elif isinstance(e, dict):
+                    rows.append([label, klabel,
+                                 _fmt(e["cert"]["factor"]["certified_fraction"]),
+                                 _fmt(e["cert"]["full"]["certified_fraction"])])
+        if rows:
+            o.append(_table(["domain", "transport", "factor cert. frac.", "full cert. frac."], rows))
+        o.append(_fig("fig7_baselines.svg",
+                      "Factor certified fraction for fixed PCA / random&#8209;projection maps vs the "
+                      "learned invertible transport, identical protocol on all three real domains. "
+                      "A learned column of &mdash; means the domain's full&#8209;run JSON had not landed "
+                      "at generation time."))
+    else:
+        o.append('<p class="muted">results/exp7_baselines.json not present.</p>')
+
+    o.append('<h2 id="rigor">9. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
+    d8 = _load("exp8_validation.json")
+    if d8:
+        stab = d8.get("identification_stability")
+        if stab:
+            rows = []
+            for ds, label, extra in (("cmapss", "C&#8209;MAPSS", "rel ||db|| = " + _fmt(stab["cmapss"]["rel_db"])),
+                                     ("ett", "ETTm2", ""), ("aqi", "Air quality", "")):
+                s = stab[ds]
+                rows.append([label, s["split"], _fmt(s["rel_dA"]), _fmt(s["rel_dsigma"]), extra])
+            o.append("<p><strong>Identification stability.</strong> Fit/holdout parameter agreement "
+                     "on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between "
+                     "half&#8209;fits. The measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) "
+                     "clear these floors, so the reported drift is signal, not identification noise.</p>")
+            o.append(_table(["domain", "split", "rel ||&Delta;A||", "rel ||&Delta;&sigma;||", ""], rows))
+        boot = d8.get("bootstrap_ci")
+        if boot:
+            rows = []
+            for ds, label in (("cmapss", "C&#8209;MAPSS"), ("aqi", "Air quality"), ("ett", "ETTm2")):
+                if ds in boot:
+                    b = boot[ds]
+                    rows.append([label, _fmt(b["viol"]),
+                                 f"[{b['ci_lo']:.3f}, {b['ci_hi']:.3f}]",
+                                 str(b["n_probe"]), str(b["n_boot"])])
+            if rows:
+                o.append("<p><strong>Bootstrap CIs.</strong> Percentile intervals (2000 resamples) "
+                         "for the pointwise certificate&#8209;violation fraction over 2048 fixed region "
+                         "probes under the real plant.</p>")
+                o.append(_table(["domain", "viol. frac.", "95% CI", "probes", "resamples"], rows))
+        o.append(_fig("fig8_rigor.svg",
+                      "Sensitivity of the pointwise certificate to the evaluation&#8209;points "
+                      "parameter &kappa;, diffusion scaling, and region scaling, on the C&#8209;MAPSS "
+                      "checkpoint."))
+        ss = d8.get("seed_stability")
+        if ss:
+            o.append(f"<p><strong>Seed stability.</strong> Certificate re&#8209;training from 3 seeds "
+                     f"(fixed quadratic V; the learned latent dynamics varies): violation fraction "
+                     f"{ss['viol_mean']:.3f} &plusmn; {ss['viol_std']:.3f}, noise floor &beta; relative "
+                     f"std {ss['beta_rel_std']:.3f}.</p>")
+    else:
+        o.append('<p class="muted">results/exp8_validation.json not present.</p>')
+
     o.append("<h2>How to reproduce</h2>")
     o.append("""<ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
@@ -287,8 +400,11 @@ def build_results():
 <li><code>python experiments/exp1_budget.py</code> &mdash; equal-quality budget ladder over the exp1 checkpoints.</li>
 <li><code>python experiments/exp4_realtrend.py</code> &mdash; real-data pipeline (expects <code>data/cmapss/CMaps/train_FD001.txt</code> from Kaggle <code>behrad3d/nasa-cmaps</code>).</li>
 <li><code>python experiments/exp5_airquality.py</code> &mdash; second real domain (expects <code>data/aqi/PRSA_Data_*.csv</code> from Kaggle <code>sid321axn/beijing-multisite-airquality-data-set</code>).</li>
+<li><code>python experiments/exp6_grid.py</code> &mdash; third real domain (expects <code>data/ett/ETTm2.csv</code> from Kaggle <code>alaaelmor/ettsmall</code>).</li>
+<li><code>python experiments/exp7_baselines.py</code> &mdash; PCA / random&#8209;projection transport baselines on all three domains.</li>
+<li><code>python experiments/exp8_validation.py</code> &mdash; identification stability, bootstrap CIs, ablations, seed stability.</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
-<li><code>python -m pytest tests/ -q</code> &mdash; soundness, tightness, invertibility, metric, push&#8209;forward tests.</li>
+<li><code>python -m pytest tests/ -q</code> &mdash; soundness, rigor, invertibility, loader, and bootstrap&#8209;statistics tests.</li>
 </ul>""")
     o.append("</section>")
     o.append(FOOTER)

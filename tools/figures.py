@@ -282,13 +282,141 @@ def fig_airquality():
     return True
 
 
+def fig_grid():
+    data = _load("exp6_grid.json")
+    if data is None:
+        return False
+    era = data["era"]
+    w, h, m = 560, 380, 64
+    lo_y, hi_y = 0.0, 1.0
+
+    def Y(v):
+        return (h - m) - (h - 2 * m) * (v - lo_y) / (hi_y - lo_y)
+
+    o = _svg_open(w, h, "Load-regime drift: certificate violations under each grid era")
+    o += _axes(w, h, m, "", "probe violation fraction", "")
+    o += _yticks(m, w, h, lo_y, hi_y, [0, 0.25, 0.5, 0.75, 1.0], lambda t: f"{t:.2f}")
+    bars = [("high-load era (08-20h)", era["high_load"]["viol_frac"], BLUE, w * 0.32),
+            ("low-load era (21-07h)", era["low_load"]["viol_frac"], ACCENT, w * 0.62)]
+    bw = w * 0.14
+    for label, v, color, cx in bars:
+        y0, y1 = Y(0), Y(max(v, 0.005))
+        o.append(f'<rect x="{cx - bw / 2:.1f}" y="{y1:.1f}" width="{bw:.1f}" '
+                 f'height="{max(y0 - y1, 1.0):.1f}" fill="{color}" opacity="0.85"/>')
+        o.append(_text(cx, y1 - 8, f"{v:.2f}", 13, color, weight="bold"))
+        o.append(_text(cx, y0 + 16, label, 12, INK))
+    shift = data["identification"]["attractor_shift"]
+    o.append(_text(w - m - 8, m + 14, f"attractor shift {shift:.2f} sd", 11.5, GREY, "end"))
+    o.append(_text(w - m - 8, m + 30,
+                   "identified from ETTm2 (transformer OT + 6 load channels)", 11.5, GREY, "end"))
+    o.append("</svg>")
+    with open(os.path.join(SITE, "fig6_grid.svg"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(o))
+    return True
+
+
+def fig_baselines():
+    data = _load("exp7_baselines.json")
+    if data is None:
+        return False
+    domains = [("cmapss", "C-MAPSS"), ("aqi", "Air quality"), ("ett", "ETTm2 grid")]
+    variants = [("pca", "PCA", BLUE), ("random", "Random proj.", GREY),
+                ("learned", "Learned (ours)", ACCENT)]
+    w, h, m = 640, 400, 64
+    lo_y, hi_y = 0.0, 1.0
+
+    def Y(v):
+        return (h - m) - (h - 2 * m) * (v - lo_y) / (hi_y - lo_y)
+
+    o = _svg_open(w, h, "Factor certified fraction: fixed linear maps vs the learned transport")
+    o += _axes(w, h, m, "", "factor certified fraction", "")
+    o += _yticks(m, w, h, lo_y, hi_y, [0, 0.25, 0.5, 0.75, 1.0], lambda t: f"{t:.2f}")
+    group_w = (w - 2 * m) / len(domains)
+    bw = group_w * 0.22
+    for gi, (ds, label) in enumerate(domains):
+        d = data.get(ds, {})
+        cx0 = m + group_w * (gi + 0.5)
+        for vi, (key, vlabel, color) in enumerate(variants):
+            entry = d.get(key)
+            frac = None
+            if isinstance(entry, dict):
+                cert = entry.get("cert") or {}
+                frac = (cert.get("factor") or {}).get("certified_fraction")
+            x = cx0 + (vi - 1) * (bw + 4)
+            if frac is None:
+                o.append(_text(x, Y(0) - 6, "n/a", 11, GREY))
+                continue
+            y0, y1 = Y(0), Y(max(frac, 0.005))
+            o.append(f'<rect x="{x - bw / 2:.1f}" y="{y1:.1f}" width="{bw:.1f}" '
+                     f'height="{max(y0 - y1, 1.0):.1f}" fill="{color}" opacity="0.85"/>')
+            o.append(_text(x, y1 - 6, f"{frac:.2f}", 11.5, color, weight="bold"))
+        o.append(_text(cx0, Y(0) + 16, label, 12, INK))
+    for vi, (key, vlabel, color) in enumerate(variants):
+        lx = m + 8 + vi * 130
+        o.append(f'<rect x="{lx:.1f}" y="{m - 26}" width="10" height="10" fill="{color}" opacity="0.85"/>')
+        o.append(_text(lx + 14, m - 17, vlabel, 11, INK, anchor="start"))
+    o.append(_text(w - m - 8, m + 14,
+                   "identical downstream protocol, budgets and seeds", 11, GREY, "end"))
+    o.append("</svg>")
+    with open(os.path.join(SITE, "fig7_baselines.svg"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(o))
+    return True
+
+
+def fig_rigor():
+    data = _load("exp8_validation.json")
+    if data is None or "ablations" not in data:
+        return False
+    ab = data["ablations"]
+    w, h, m = 780, 320, 58
+    lo_y, hi_y = 0.0, 1.0
+    panel_w = (w - 2 * m) / 3
+
+    def Y(v):
+        return (h - m) - (h - 2 * m) * (v - lo_y) / (hi_y - lo_y)
+
+    o = _svg_open(w, h, "Certificate sensitivity: kappa, noise scaling, region scaling")
+    o.append(f'<rect x="0" y="0" width="{w}" height="{h}" fill="white"/>')
+    panels = [("kappa (evaluation points)", [(p["kappa"], p["viol"]) for p in ab["kappa"]], "%.1f"),
+              ("noise multiplier", [(p["noise_mult"], p["viol"]) for p in ab["noise"]], "x{:.1f}"),
+              ("region scale", [(p["scale"], p["viol"]) for p in ab["region"]], "x{:.2f}")]
+    for pi, (title, pts, fmt) in enumerate(panels):
+        px = m + panel_w * pi
+        pw = panel_w - 18
+        # panel frame
+        o.append(f'<line x1="{px:.1f}" y1="{Y(1):.1f}" x2="{px:.1f}" y2="{Y(0):.1f}" stroke="{GREY}"/>')
+        o.append(f'<line x1="{px:.1f}" y1="{Y(0):.1f}" x2="{px + pw:.1f}" y2="{Y(0):.1f}" stroke="{GREY}"/>')
+        xs = [p[0] for p in pts]
+        x_lo, x_hi = min(xs), max(xs)
+
+        def X(t):
+            return px + 6 + (pw - 12) * (t - x_lo) / max(x_hi - x_lo, 1e-9)
+
+        path = " ".join(f"{X(t):.1f},{Y(v):.1f}" for t, v in pts)
+        o.append(f'<polyline points="{path}" fill="none" stroke="{ACCENT}" stroke-width="2"/>')
+        for t, v in pts:
+            o.append(f'<circle cx="{X(t):.1f}" cy="{Y(v):.1f}" r="3.5" fill="{ACCENT}"/>')
+            o.append(_text(X(t), Y(0) + 16, fmt.format(t), 10, GREY))
+            o.append(_text(X(t), Y(v) - 8, f"{v:.2f}", 10, INK))
+        o.append(_text(px + pw / 2, m - 22, title, 11.5, INK, weight="bold"))
+    o.append(_text(m, h - 12, "pointwise violation fraction vs sweep parameter "
+                   "(C-MAPSS checkpoint, 512 probes)", 10.5, GREY, "start"))
+    o.append("</svg>")
+    with open(os.path.join(SITE, "fig8_rigor.svg"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(o))
+    return True
+
+
 def main():
     done = []
     for fn, name in ((fig_tightness, "fig1_tightness"),
                      (fig_scaling, "fig2_scaling"),
                      (fig_shadow, "fig3_shadow"),
                      (fig_realtrend, "fig4_realtrend"),
-                     (fig_airquality, "fig5_airquality")):
+                     (fig_airquality, "fig5_airquality"),
+                     (fig_grid, "fig6_grid"),
+                     (fig_baselines, "fig7_baselines"),
+                     (fig_rigor, "fig8_rigor")):
         ok = fn()
         print(("wrote " if ok else "skipped (no data) ") + name)
         if ok:
