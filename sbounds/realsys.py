@@ -234,11 +234,14 @@ def load_prsa_aq(data_dir: str | None = None, station: str = "Aotizhongxin") -> 
     import csv
 
     here = os.path.dirname(os.path.abspath(__file__))
-    default = os.path.join(os.path.dirname(here), "data", "aqi",
-                           f"PRSA_Data_{station}_20130301-20170228.csv")
+    default_dir = os.path.join(os.path.dirname(here), "data", "aqi")
+    default_name = f"PRSA_Data_{station}_20130301-20170228.csv"
     cols = ["year", "month", "day", "hour"] + AQ_COLS
     raw: dict[str, list] = {c: [] for c in cols}
-    with open(data_dir or default, encoding="utf-8") as fh:
+    csv_path = data_dir
+    if csv_path is None or os.path.isdir(csv_path):
+        csv_path = os.path.join(csv_path or default_dir, default_name)
+    with open(csv_path, encoding="utf-8") as fh:
         for row in csv.DictReader(fh):
             for c in cols:
                 v = row[c]
