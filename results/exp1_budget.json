@@ -250,6 +250,76 @@
           },
           "seconds_factor": 7319.3341472148895,
           "seconds_full": 915.1302134990692
+        },
+        {
+          "budget": 32240,
+          "factor": {
+            "certified_fraction": 0.0,
+            "nodes": 32254,
+            "seconds": 14670.443715810776,
+            "worst_upper": 21.559384177775563,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 32254,
+            "seconds": 10041.508244276047,
+            "worst_upper": 406.52721625745056,
+            "fully_certified": false
+          },
+          "seconds_factor": 14670.443715810776,
+          "seconds_full": 10041.508244276047
+        }
+      ]
+    },
+    {
+      "tag": "arm10_d4",
+      "n_links": 10,
+      "D": 20,
+      "d_eta": 4,
+      "beta": 0.0007582839294787875,
+      "tol": 0.05,
+      "threshold": 0.05075828392947879,
+      "lam_Q": 1.2698778689614927,
+      "cert_viol_frac": 0.0,
+      "ladder": [
+        {
+          "budget": 4030,
+          "factor": {
+            "certified_fraction": 0.0,
+            "nodes": 4030,
+            "seconds": 5328.19392490387,
+            "worst_upper": 103.35040168290713,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 4030,
+            "seconds": 372.8598144054413,
+            "worst_upper": 1778.2034861959582,
+            "fully_certified": false
+          },
+          "seconds_factor": 5328.19392490387,
+          "seconds_full": 372.8598144054413
+        },
+        {
+          "budget": 8060,
+          "factor": {
+            "certified_fraction": 0.0,
+            "nodes": 8062,
+            "seconds": 5987.621766805649,
+            "worst_upper": 77.12073476250212,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 8062,
+            "seconds": 747.5848698616028,
+            "worst_upper": 1696.181014729463,
+            "fully_certified": false
+          },
+          "seconds_factor": 5987.621766805649,
+          "seconds_full": 747.5848698616028
         }
       ]
     }
