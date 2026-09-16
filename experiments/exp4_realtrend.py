@@ -89,7 +89,7 @@ def era_probe(trained: dict, sys_healthy, sys_aged, n_probe: int = 512) -> dict:
 
 def main() -> None:
     quick = "--quick" in sys.argv
-    torch.set_num_threads(os.cpu_count() or 4)
+    torch.set_num_threads(int(os.environ.get("SLB_THREADS", os.cpu_count() or 4)))
     wm_steps, cert_steps, n_traj = (400, 400, 800) if quick else (1200, 900, 2400)
     node_budget, time_budget = (1500, 240.0) if quick else (4030, 900.0)
 
