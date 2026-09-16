@@ -10,3 +10,4 @@ logs/
 nohup.out
 results/*.log
 results/*.pt
+data/aqi/

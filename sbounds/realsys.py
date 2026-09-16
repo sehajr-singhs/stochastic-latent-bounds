@@ -208,3 +208,77 @@ def era_systems(data: dict) -> tuple[SensorSystem, SensorSystem]:
     sys_aged = SensorSystem.fit(data["X"][data["era_hi"] == 1.0],
                                 data["unit"][data["era_hi"] == 1.0])
     return sys_healthy, sys_aged
+
+
+# ---------------------------------------------------------------------------
+# Second real domain: Beijing multi-site air quality (PRSA, 12 stations,
+# hourly, 2013-03-01 .. 2017-02-28). Environmental physics: pollutant and
+# meteorological channels interact through transport, chemistry and boundary-
+# layer dynamics; the seasonal heating cycle is a documented, physically
+# grounded regime shift -- the drift event for the gate.
+# ---------------------------------------------------------------------------
+
+AQ_COLS = ["PM2.5", "PM10", "SO2", "NO2", "CO", "O3", "TEMP", "PRES", "DEWP", "WSPM"]
+
+
+def load_prsa_aq(data_dir: str | None = None, station: str = "Aotizhongxin") -> dict:
+    """Load one PRSA station and return z-scored hourly channels + season flags.
+
+    Missing values (the CSVs use 'NA') are linearly interpolated in time per
+    channel -- standard for this dataset; the filled count is returned so the
+    preprocessing is auditable. Channels are z-scored with statistics from the
+    *non-heating* era only, so standardization carries no information about the
+    drift era. era_lo marks the non-heating baseline regime (certified plant),
+    era_hi the heating-season regime (drift plant).
+    """
+    import csv
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    default = os.path.join(os.path.dirname(here), "data", "aqi",
+                           f"PRSA_Data_{station}_20130301-20170228.csv")
+    cols = ["year", "month", "day", "hour"] + AQ_COLS
+    raw: dict[str, list] = {c: [] for c in cols}
+    with open(data_dir or default, encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            for c in cols:
+                v = row[c]
+                raw[c].append(float(v) if v not in ("", "NA") else None)
+    n = len(raw["year"])
+    # linear interpolation over missing values, per channel
+    filled = 0
+    Xcols = []
+    for c in AQ_COLS:
+        s = raw[c]
+        idx = [i for i, v in enumerate(s) if v is not None]
+        out = [None] * n
+        for i, v in zip(idx, (s[i] for i in idx)):
+            out[i] = v
+        filled += n - len(idx)
+        if not idx:
+            raise ValueError(f"channel {c} entirely missing")
+        # edges: extend the nearest valid value; interior: linear in time
+        for i in range(0, idx[0]):
+            out[i] = s[idx[0]]
+        for i in range(idx[-1] + 1, n):
+            out[i] = s[idx[-1]]
+        for (a, b) in zip(idx, idx[1:]):
+            if b - a > 1:
+                va, vb = s[a], s[b]
+                for k in range(1, b - a):
+                    out[a + k] = va + (vb - va) * k / (b - a)
+        Xcols.append(out)
+    X = torch.tensor(Xcols, dtype=torch.float64).T            # (N, D)
+    month = torch.tensor(raw["month"])
+    day = torch.tensor(raw["day"])
+    # Beijing heating season: Nov 15 - Mar 15 (the municipal schedule)
+    heating = ((month == 11) & (day >= 15)) | (month == 12) | (month == 1) | \
+              ((month == 3) & (day <= 15))
+    era_hi = heating.to(torch.float64)
+    era_lo = 1.0 - era_hi
+    # standardize on the baseline (non-heating) era only
+    mu = X[era_lo == 1.0].mean(dim=0)
+    sd = X[era_lo == 1.0].std(dim=0).clamp_min(1e-9)
+    Xz = (X - mu) / sd
+    return {"X": Xz, "era_lo": era_lo, "era_hi": era_hi, "cols": list(AQ_COLS),
+            "station": station, "n_rows": n, "n_filled": filled,
+            "frac_heating": float(era_hi.mean()), "mu": mu, "sd": sd}
