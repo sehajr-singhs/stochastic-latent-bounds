@@ -98,13 +98,15 @@
 <h2>The idea</h2>
 <div class="statrow">
   <div class="stat"><div class="v">D = 8&ndash;20</div><div class="k">physical state dimension (N&#8209;link arm)</div></div>
-  <div class="stat"><div class="v">d = 2&ndash;4</div><div class="k">certified factor dimension</div></div>
   <div class="stat"><div class="v">64.9%</div><div class="k">region certified at D=8 (vs 0% for full&#8209;dim BnB, same budget)</div></div>
+  <div class="stat"><div class="v">8 / 0</div><div class="k">real C&#8209;MAPSS aging drift: unsafe swaps, naive vs gated</div></div>
+  <div class="stat"><div class="v">2.82 sd</div><div class="k">identified attractor shift under real fleet aging</div></div>
   <div class="stat"><div class="v">0</div><div class="k">sample&#8209;based assumptions &mdash; all bounds are verified, not estimated</div></div>
 </div>
 <div class="cards">
   <div class="card"><b>Learned coordinates</b><span class="m">An exactly invertible transport <code>T</code> factors the state into a low&#8209;dimensional certified factor &eta; and a transversal residual &rho; &mdash; zero information is discarded.</span></div>
   <div class="card"><b>Sound bounds</b><span class="m">Branch&#8209;and&#8209;bound over the region with interval enclosures: exact Ito trace, centered drift forms, outward rounding. No sample&#8209;based &ldquo;certificates&rdquo;.</span></div>
+  <div class="card"><b>Validated on real fleet data</b><span class="m">Plants identified from NASA C&#8209;MAPSS turbofan trajectories (FD001, 100 engines run to failure); the aging drift between fleet eras is detected by the certificate probe and blocked by the hot&#8209;swap gate.</span></div>
   <div class="card"><b>Honest noise floor</b><span class="m">Additive noise makes <code>L W(0) = &beta; &gt; 0</code>; the classical condition certifies the empty set. The thresholded certificate states an explicit noise ball instead.</span></div>
   <div class="card"><b>Gated adaptation</b><span class="m">A shadow network re&#8209;learns online behind a certified acceptance gate; swaps that would violate the certificate are rejected, and that is measured.</span></div>
 </div>
