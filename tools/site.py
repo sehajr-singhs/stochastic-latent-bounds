@@ -305,6 +305,22 @@ def build_results():
              ["era probe: viol. frac. low&#8209;load", _fmt(era["low_load"]["viol_frac"])],
              ["shadow gate: unsafe swaps (sound / naive)",
               f"{d6['shadow']['sound']['unsafe_swaps']} / {d6['shadow']['naive']['unsafe_swaps']}"]]))
+        o.append(
+            "<p><strong>Honest reading.</strong> At native 15&#8209;minute sampling the "
+            "ETTm2 plant is noise&#8209;dominated: the identified per&#8209;cycle diffusion puts "
+            f"the noise floor at &beta; &asymp; {d6['beta']:.1f}, the certified practical&#8209;stability "
+            "ball covers most of the claimed region, and the sound verifier certifies 0% "
+            "of it at this budget. We report this negative result with its mechanism "
+            "rather than tuning it away: the pointwise certificate closes on "
+            f"{1 - d6['era']['high_load']['viol_frac']:.0%} of probes, the violation fraction "
+            "still separates the real load regimes, and the hot&#8209;swap gate remains exactly "
+            "sound under the genuine regime shift &mdash; "
+            f"{d6['shadow']['sound']['unsafe_swaps']} unsafe swaps vs "
+            f"{d6['shadow']['naive']['unsafe_swaps']}/8 unsafe for the naive gate. "
+            "Certificate training on raw per&#8209;step differences fits noise in this regime "
+            "(the two&#8209;stage push&#8209;forward refit, math.md &sect;11, is the fix for the "
+            "<em>model</em>; the <em>region</em> stays bounded by the plant&#8217;s own "
+            "noise&#8209;to&#8209;drift ratio).</p>")
         o.append(_fig("fig6_grid.svg",
                       "Certificate&#8209;violation fraction under the two real load regimes of "
                       "the identified transformer plant. The daily regime cycle is a "

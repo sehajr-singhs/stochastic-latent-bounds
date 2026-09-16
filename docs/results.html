@@ -143,7 +143,18 @@
 </table>
 <figure><img src="assets/fig5_airquality.svg" alt="Certificate-violation fraction under the two seasonal regimes of the identified air&#8209;quality plant. The heating&#8209;season shift is the drift event the hot&#8209;swap gate is designed for."><figcaption>Certificate-violation fraction under the two seasonal regimes of the identified air&#8209;quality plant. The heating&#8209;season shift is the drift event the hot&#8209;swap gate is designed for.</figcaption></figure>
 <h2 id="grid">7. Real grid physics: ETTm2 transformer load regimes (exp6)</h2>
-<p class="muted">results/exp6_grid.json not present.</p>
+<p>A third physical domain &mdash; electricity&#8209;grid physics: the ETTm2 benchmark (transformer oil temperature OT + 6 load channels, 15&#8209;min sampling, two years). The drift event is the real daily load regime: high&#8209;load era (08&ndash;20h) vs low&#8209;load era (21&ndash;07h). Identified shift: attractor moves 1.08 sd, ||&Delta;A|| = 0.06. Same pipeline as exp4/exp5, again zero domain&#8209;specific code beyond the CSV loader.</p>
+<table>
+<tr><th>quantity</th><th>value</th></tr>
+<tr><td>noise floor &beta; (identified diffusion)</td><td>1.26e+00</td></tr>
+<tr><td>factor cert. frac. (d=2 of D=7)</td><td>0.000</td></tr>
+<tr><td>full cert. frac. (all D)</td><td>0.000</td></tr>
+<tr><td>era probe: viol. frac. high&#8209;load</td><td>0.627</td></tr>
+<tr><td>era probe: viol. frac. low&#8209;load</td><td>0.637</td></tr>
+<tr><td>shadow gate: unsafe swaps (sound / naive)</td><td>0 / 8</td></tr>
+</table>
+<p><strong>Honest reading.</strong> At native 15&#8209;minute sampling the ETTm2 plant is noise&#8209;dominated: the identified per&#8209;cycle diffusion puts the noise floor at &beta; &asymp; 1.3, the certified practical&#8209;stability ball covers most of the claimed region, and the sound verifier certifies 0% of it at this budget. We report this negative result with its mechanism rather than tuning it away: the pointwise certificate closes on 37% of probes, the violation fraction still separates the real load regimes, and the hot&#8209;swap gate remains exactly sound under the genuine regime shift &mdash; 0 unsafe swaps vs 8/8 unsafe for the naive gate. Certificate training on raw per&#8209;step differences fits noise in this regime (the two&#8209;stage push&#8209;forward refit, math.md &sect;11, is the fix for the <em>model</em>; the <em>region</em> stays bounded by the plant&#8217;s own noise&#8209;to&#8209;drift ratio).</p>
+<figure><img src="assets/fig6_grid.svg" alt="Certificate&#8209;violation fraction under the two real load regimes of the identified transformer plant. The daily regime cycle is a recurrent, predictable drift event."><figcaption>Certificate&#8209;violation fraction under the two real load regimes of the identified transformer plant. The daily regime cycle is a recurrent, predictable drift event.</figcaption></figure>
 <h2 id="baselines">8. Transport baselines: does the learned map matter? (exp7)</h2>
 <p class="muted">results/exp7_baselines.json not present.</p>
 <h2 id="rigor">9. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
