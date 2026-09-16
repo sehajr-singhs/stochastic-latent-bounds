@@ -83,7 +83,7 @@ def main() -> None:
             * system.lqr_like_scale()
         x1 = euler_maruyama(system, x0, 1, DT,
                             generator=torch.Generator().manual_seed(1))
-        data = RolloutData(x0.detach(), x1.detach(), DT)
+        data = RolloutData(x0.detach(), x1.detach(), DT, system=system)
 
         transport = InvertibleTransport(
             dim=D, d_latent=D_ETA, n_layers=4, width=32, hidden_depth=2,
@@ -93,7 +93,8 @@ def main() -> None:
         wm_hist = train_world_model(transport, F, data, D_ETA,
                                     TrainConfig(steps=wm_steps, seed=0,
                                                 w_contract=0.3, d_eta=D_ETA,
-                                                rho_spec_cap=1.0))
+                                                rho_spec_cap=1.0,
+                                                target_pushforward=True))
         t_wm = time.time() - t0
 
         xr = (2.0 * torch.rand((2048, D), dtype=torch.float64,

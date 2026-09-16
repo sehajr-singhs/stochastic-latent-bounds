@@ -41,6 +41,8 @@ class RolloutData:
     x0: torch.Tensor        # (N, D) start of each pair
     x1: torch.Tensor        # (N, D) one step later
     dt: float
+    system: object | None = None   # the plant that generated the pairs (needed
+                                   # for the exact push-forward training target)
 
     def batches(self, batch: int, generator):
         idx = torch.randperm(self.x0.shape[0], generator=generator)
@@ -95,6 +97,10 @@ class TrainConfig:
     rho_margin: float = 2.0          # mid-training stability margin for A_rr
     log_every: int = 250
     seed: int = 0
+    target_pushforward: bool = False # fit F to the plant's exact Ito push-forward
+                                     # (per-batch, recomputed as T moves) instead of
+                                     # raw single-step differences -- the right target
+                                     # when real data's per-step signal is noise-dominated
 
 
 def train_world_model(transport, F: LatentDynamics, data: RolloutData, d_eta: int,
@@ -111,8 +117,21 @@ def train_world_model(transport, F: LatentDynamics, data: RolloutData, d_eta: in
             if step >= cfg.steps:
                 break
             y0, y1 = transport(x0), transport(x1)
-            target = (y1 - y0) / data.dt
-            l_fit = ((F(y0) - target) ** 2).mean()
+            if cfg.target_pushforward:
+                # Regressing (y1 - y0)/dt fits the *noise* when the per-step
+                # drift is small relative to the per-step diffusion (the regime
+                # of real sensor data at its native sampling). The verifier's
+                # pointwise claim is about the plant's exact Ito push-forward
+                # drift under T -- so fit exactly that, recomputed each batch as
+                # the transport moves. Rollout pairs still define the data
+                # distribution and the region; they are simply no longer the
+                # regression target.
+                from sbounds.systems import pushforward_drift as _pf
+                target = _pf(data.system, transport, x0)
+                l_fit = ((F(y0) - target) ** 2).mean()
+            else:
+                target = (y1 - y0) / data.dt
+                l_fit = ((F(y0) - target) ** 2).mean()
             _, A_er, _, A_rr = F.blocks(d_eta)
             l_dec = (A_er ** 2).sum()
             # the transversal residual must not directly force rho: this is the
@@ -172,7 +191,10 @@ def train_world_model(transport, F: LatentDynamics, data: RolloutData, d_eta: in
                 print(f"  [wm] step {step:5d} fit {float(l_fit):.3e} dec {float(l_dec):.3e} "
                       f"con {float(l_con):.3e} lam_rho {float(lam):+.3f}")
             step += 1
-    if cfg.refit_A:
+    if cfg.refit_A and not cfg.target_pushforward:
+        # the ridge refit fits A to the noisy (y1-y0)/dt differences; with the
+        # push-forward target the linear part is already aligned to the plant
+        # by the fit term itself, and the refit would re-inject the noise
         refit_linear_part(F, transport, data, d_eta)
     hist["final_lam_rho"] = float(F.rho_contraction_rate(d_eta))
     hist.update(F.refresh_rho_metric(d_eta))

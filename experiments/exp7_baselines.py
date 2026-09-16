@@ -188,7 +188,7 @@ def run_variant(kind: str, system, D: int, wm_steps: int, cert_steps: int,
         * system.lqr_like_scale()
     x1 = euler_maruyama(system, x0, 1, DT,
                         generator=torch.Generator().manual_seed(1))
-    data = RolloutData(x0.detach(), x1.detach(), DT)
+    data = RolloutData(x0.detach(), x1.detach(), DT, system=system)
 
     if kind == "pca":
         transport = LinearTransport(_pca_U(system, data), system.equilibrium(),
@@ -202,7 +202,8 @@ def run_variant(kind: str, system, D: int, wm_steps: int, cert_steps: int,
     F = LatentDynamics(D, width=64, depth=2, seed=0, d_eta=D_ETA)
     train_world_model(transport, F, data, D_ETA,
                       TrainConfig(steps=wm_steps, seed=0, w_contract=0.3,
-                                  d_eta=D_ETA, rho_spec_cap=1.0))
+                                  d_eta=D_ETA, rho_spec_cap=1.0,
+                                  target_pushforward=True))
     region = _build_region(transport, system, D)
 
     V = LyapunovNet(D_ETA, use_residual=False, p_scale=1.0, seed=0)
