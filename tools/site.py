@@ -19,46 +19,75 @@ HEADER = """<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Results - stochastic-latent-bounds</title>
+  <title>stochastic-latent-bounds</title>
+  <meta name="description" content="Sound stochastic Lyapunov certificates for high-dimensional physical systems via invertible latent transports">
   <style>
-    :root { --ink:#1a1a1a; --muted:#6b6b6b; --line:#e5e5e5; --accent:#c62f2f; --blue:#33608c; --mono:"SFMono-Regular",Consolas,Menlo,monospace; }
-    * { box-sizing: border-box; }
-    body { margin:0; color:var(--ink); background:#fff; font:16px/1.65 "Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
-    .wrap { max-width:820px; margin:0 auto; padding:0 24px 96px; }
-    header.site { border-bottom:1px solid var(--line); padding:28px 0 22px; margin-bottom:40px; }
-    header.site h1 { font-size:22px; margin:0 0 4px; }
-    header.site h1 a { color:var(--ink); text-decoration:none; }
-    header.site p.tag { margin:0; color:var(--muted); font-size:14.5px; }
-    nav.links { margin-top:14px; font-size:14px; }
-    nav.links a { color:var(--blue); text-decoration:none; margin-right:18px; }
-    h2 { font-size:19px; margin:44px 0 10px; }
-    figure { margin:26px 0 8px; }
-    figure img { width:100%; height:auto; border:1px solid var(--line); border-radius:6px; }
-    figcaption { color:var(--muted); font-size:13.5px; margin-top:8px; }
-    table { border-collapse:collapse; width:100%; font-size:13.5px; margin:18px 0; }
-    th, td { border-bottom:1px solid var(--line); padding:7px 9px; text-align:right; }
-    th:first-child, td:first-child { text-align:left; }
-    th { font-weight:600; color:var(--muted); }
-    .muted { color:var(--muted); }
-    code { font-family:var(--mono); font-size:13px; background:#f6f6f6; padding:1px 5px; border-radius:3px; }
-    .formula { font-family:var(--mono); font-size:13.5px; background:#fafafa; border-left:3px solid var(--accent); padding:10px 14px; margin:14px 0; overflow-x:auto; }
-    footer { margin-top:64px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
-    footer a { color:var(--blue); text-decoration:none; }
-    ul { padding-left: 22px; }
-    li { margin: 6px 0; }
+    body { background-color:#fff; padding:50px; font:14px/1.5 "Noto Sans","Helvetica Neue",Helvetica,Arial,sans-serif; color:#727272; font-weight:400; }
+    h1,h2,h3,h4,h5,h6 { color:#222; margin:0 0 20px; }
+    p,ul,ol,table,pre,dl { margin:0 0 20px; }
+    h1,h2,h3 { line-height:1.1; }
+    h1 { font-size:28px; } h2 { color:#393939; } h3 { color:#494949; }
+    a { color:#267CB9; text-decoration:none; }
+    a:hover,a:focus { color:#069; font-weight:bold; }
+    strong { color:#222; font-weight:700; }
+    .wrapper { width:860px; margin:0 auto; }
+    header { width:270px; float:left; position:fixed; -webkit-font-smoothing:subpixel-antialiased; }
+    header h1 a { color:#222; }
+    section { width:500px; float:right; padding-bottom:50px; }
+    code,pre { font-family:Monaco,"Bitstream Vera Sans Mono","Lucida Console",Terminal,Consolas,"Liberation Mono","DejaVu Sans Mono",monospace; color:#333; }
+    pre { padding:8px 15px; background:#f8f8f8; border-radius:5px; border:1px solid #e5e5e5; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:5px 10px; border-bottom:1px solid #e5e5e5; }
+    dt { color:#444; font-weight:700; }
+    th { color:#444; }
+    img { max-width:100%; }
+    figcaption { font-size:11px; color:#777; margin-top:4px; }
+    figure { margin:0 0 20px; }
+    hr { border:0; background:#e5e5e5; height:1px; margin:0 0 20px; }
+    footer { width:270px; float:left; position:fixed; bottom:50px; -webkit-font-smoothing:subpixel-antialiased; }
+    .formula { font-family:Monaco,Consolas,"Liberation Mono",monospace; font-size:12.5px; background:#f8f8f8; border-left:3px solid #aa0000; padding:8px 12px; margin:0 0 20px; overflow-x:auto; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:6px; margin:0 0 20px; }
+    .stat { border:1px solid #e5e5e5; border-radius:5px; padding:6px 8px; }
+    .stat .v { font-size:15px; color:#222; font-weight:700; }
+    .stat .k { font-size:10px; color:#777; line-height:1.35; margin-top:2px; }
+    .badges { color:#777; }
+    .badges span { border:1px solid #e5e5e5; border-radius:999px; padding:1px 9px; margin-right:5px; font-size:11px; display:inline-block; }
+    @media print, screen and (max-width: 960px) {
+      div.wrapper { width:auto; margin:0; }
+      header,section,footer { float:none; position:static; width:auto; }
+      header { padding-right:320px; }
+      section { border:1px solid #e5e5e5; border-width:1px 0; padding:20px 0; margin:0 0 20px; }
+    }
+    @media print, screen and (max-width: 720px) {
+      body { word-wrap:break-word; padding:30px; } header { padding:0; }
+    }
+    @media print, screen and (max-width: 480px) { body { padding:15px; } }
   </style>
 </head>
 <body>
-<div class="wrap">
-<header class="site">
+<div class="wrapper">
+<header>
   <h1><a href="index.html">stochastic&#8209;latent&#8209;bounds</a></h1>
-  <p class="tag">Results &mdash; every number below is rendered from <code>results/*.json</code> committed next to the code.</p>
-  <nav class="links"><a href="index.html">Overview</a><a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a></nav>
+  <p>Sound stochastic Lyapunov certificates for high&#8209;dimensional physical systems, via invertible latent transports</p>
+  <p class="view"><a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">View My GitHub Profile</a></p>
+  <strong><a href="index.html">Overview</a></strong><br>
+  <strong><a href="results.html">Results</a></strong><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#tightness">Tightness (exp3)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#scaling">Scaling (exp1)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#hotswap">Hot&#8209;swap gate (exp2)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#ladder">Effort ladder (exp1b)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#cmapss">C&#8209;MAPSS fleet (exp4)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#airquality">Air quality (exp5)</a><br>
+  <strong><a href="math.html">Mathematics</a></strong><br>
+  <strong><a href="api.html">API</a></strong><br>
 </header>
 """
 
 FOOTER = """
-<footer>Generated by <code>tools/site.py</code> from committed result files. Regenerate with <code>python tools/figures.py &amp;&amp; python tools/site.py</code>.</footer>
+<footer>
+  <p>Generated by <code>tools/site.py</code> from committed result files.<br>
+  Regenerate: <code>python tools/figures.py &amp;&amp; python tools/site.py</code></p>
+</footer>
 </div>
 </body>
 </html>
@@ -98,7 +127,8 @@ def _fig(name, caption):
 
 def build_results():
     o = [HEADER]
-    o.append("<h2>1. Tightness of the Ito bound (exp3)</h2>")
+    o.append("<section>")
+    o.append('<h2 id="tightness">1. Tightness of the Ito bound (exp3)</h2>')
     d3 = _load("exp3_tightness.json")
     if d3:
         beta, tol = d3["beta"], d3["tol"]
@@ -124,7 +154,7 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp3_tightness.json not present.</p>')
 
-    o.append("<h2>2. Certified volume vs dimension (exp1)</h2>")
+    o.append('<h2 id="scaling">2. Certified volume vs dimension (exp1)</h2>')
     d1 = _load("exp1.json")
     if d1:
         rows = []
@@ -153,7 +183,7 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp1.json not present.</p>')
 
-    o.append("<h2>3. Gated online hot&#8209;swap (exp2)</h2>")
+    o.append('<h2 id="hotswap">3. Gated online hot&#8209;swap (exp2)</h2>')
     d2 = _load("exp2.json")
     if d2:
         rows = []
@@ -170,7 +200,7 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp2.json not present.</p>')
 
-    o.append("<h2>4. Effort ladder: budget needed to reach equal quality (exp1b)</h2>")
+    o.append('<h2 id="ladder">4. Effort ladder: budget needed to reach equal quality (exp1b)</h2>')
     db = _load("exp1_budget.json")
     if db:
         o.append(
@@ -193,7 +223,7 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp1_budget.json not present.</p>')
 
-    o.append("<h2>5. Real fleet data: NASA C-MAPSS aging drift (exp4)</h2>")
+    o.append('<h2 id="cmapss">5. Real fleet data: NASA C-MAPSS aging drift (exp4)</h2>')
     d4 = _load("exp4_realtrend.json")
     if d4:
         ident, era, c4 = d4["identification"], d4["era"], d4["cert"]
@@ -222,24 +252,67 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp4_realtrend.json not present.</p>')
 
+    o.append('<h2 id="airquality">6. Real environmental data: Beijing air&#8209;quality drift (exp5)</h2>')
+    d5 = _load("exp5_airquality.json")
+    if d5:
+        ident, era, c5 = d5["identification"], d5["era"], d5["cert"]
+        o.append(
+            f"<p>A second physical domain: an Ornstein&#8209;Uhlenbeck plant identified from "
+            f"hourly multi&#8209;pollutant records at {d5['dataset'].split(', ')[-1].split(' (')[0]} "
+            f"(Beijing PRSA; 10 channels, hourly 2013&ndash;2017). The drift event is the real "
+            f"seasonal regime shift: heating season (Nov&#8209;Mar, municipal schedule) vs the rest "
+            f"of the year. Identified shift: attractor moves {ident['attractor_shift']:.2f} sd, "
+            f"||&Delta;A|| = {ident['dA_norm']:.2f}. Same pipeline as exp4, zero domain&#8209;specific code.</p>")
+        o.append(_table(
+            ["quantity", "value"],
+            [["noise floor &beta; (identified diffusion)", f"{d5['beta']:.2e}"],
+             ["factor cert. frac. (d=%d of D=%d)" % (d5["d_eta"], d5["D"]),
+              _fmt(c5["factor"]["certified_fraction"])],
+             ["full cert. frac. (all D)", _fmt(c5["full"]["certified_fraction"])],
+             ["era probe: viol. frac. non&#8209;heating", _fmt(era["healthy"]["viol_frac"])],
+             ["era probe: viol. frac. heating", _fmt(era["aged"]["viol_frac"])],
+             ["shadow gate: unsafe swaps (sound / naive)",
+              f"{d5['shadow']['sound']['unsafe_swaps']} / {d5['shadow']['naive']['unsafe_swaps']}"]]))
+        o.append(_fig("fig5_airquality.svg",
+                      "Certificate-violation fraction under the two seasonal regimes of the "
+                      "identified air&#8209;quality plant. The heating&#8209;season shift is the drift "
+                      "event the hot&#8209;swap gate is designed for."))
+    else:
+        o.append('<p class="muted">results/exp5_airquality.json not present.</p>')
+
     o.append("<h2>How to reproduce</h2>")
     o.append("""<ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
 <li><code>python experiments/exp2_shadow.py</code> &mdash; reuses the <code>arm4_d2</code> checkpoint from exp1.</li>
 <li><code>python experiments/exp1_budget.py</code> &mdash; equal-quality budget ladder over the exp1 checkpoints.</li>
 <li><code>python experiments/exp4_realtrend.py</code> &mdash; real-data pipeline (expects <code>data/cmapss/CMaps/train_FD001.txt</code> from Kaggle <code>behrad3d/nasa-cmaps</code>).</li>
+<li><code>python experiments/exp5_airquality.py</code> &mdash; second real domain (expects <code>data/aqi/PRSA_Data_*.csv</code> from Kaggle <code>sid321axn/beijing-multisite-airquality-data-set</code>).</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, tightness, invertibility, metric, push&#8209;forward tests.</li>
 </ul>""")
+    o.append("</section>")
     o.append(FOOTER)
+    html = "\n".join(o)
     with open(os.path.join(DOCS, "results.html"), "w", encoding="utf-8") as fh:
-        fh.write("\n".join(o))
+        fh.write(html)
     print("wrote docs/results.html")
+
+
+def build_math():
+    """Render docs/math.md (authoritative markdown) into the shared site shell."""
+    import markdown
+    with open(os.path.join(DOCS, "math.md"), encoding="utf-8") as fh:
+        body = markdown.markdown(fh.read(), extensions=["fenced_code", "tables"])
+    o = [HEADER, "<section>", body, "</section>", FOOTER]
+    with open(os.path.join(DOCS, "math.html"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(o))
+    print("wrote docs/math.html")
 
 
 def build_api():
     o = [HEADER]
-    o.append("<h2>API map</h2>")
+    o.append("<section>")
+    o.append('<h2 id="apimap">API map</h2>')
     o.append("""<table>
 <tr><th>module</th><th>role</th></tr>
 <tr><td><code>sbounds.systems</code></td><td>Analytic N-link arm under gravity&#8209;compensated PD with velocity&#8209;block process noise; exact Ito push&#8209;forward of the physical SDE (the ground truth used for scoring, never for certification).</td></tr>
@@ -270,6 +343,7 @@ exactly at the box center and the deviation is bounded by a Jacobian enclosure w
 exact zeros (the factorised residual&#8217;s &eta;&#8209;rows do not read &rho;) or Lipschitz balls (spectral&#8209;norm
 products, capped during training). The remainder is quadratic in box radius, so subdivision
 converges; raw interval bound propagation is linear and certifies nothing at region scale.</p>""")
+    o.append("</section>")
     o.append(FOOTER)
     with open(os.path.join(DOCS, "api.html"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(o))
@@ -279,4 +353,5 @@ converges; raw interval bound propagation is linear and certifies nothing at reg
 if __name__ == "__main__":
     os.makedirs(DOCS, exist_ok=True)
     build_results()
+    build_math()
     build_api()

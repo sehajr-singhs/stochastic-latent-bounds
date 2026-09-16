@@ -1,40 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The mathematics - stochastic-latent-bounds</title>
-<style>
-    :root { --ink:#1a1a1a; --muted:#6b6b6b; --line:#e5e5e5; --accent:#c62f2f; --blue:#33608c; --mono:"SFMono-Regular",Consolas,Menlo,monospace; }
-    * { box-sizing: border-box; }
-    body { margin:0; color:var(--ink); background:#fff; font:16px/1.65 "Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
-    .wrap { max-width:800px; margin:0 auto; padding:0 24px 96px; }
-    header.site { border-bottom:1px solid var(--line); padding:28px 0 22px; margin-bottom:36px; }
-    header.site h1 { font-size:22px; margin:0 0 4px; }
-    header.site h1 a { color:var(--ink); text-decoration:none; }
-    nav.links { margin-top:14px; font-size:14px; }
-    nav.links a { color:var(--blue); text-decoration:none; margin-right:18px; }
-    h1, h2, h3 { letter-spacing:-0.01em; }
-    h2 { font-size:19px; margin:38px 0 10px; border-bottom:1px solid var(--line); padding-bottom:6px; }
-    code { font-family:var(--mono); font-size:13px; background:#f6f6f6; padding:1px 5px; border-radius:3px; }
-    pre { background:#f6f6f6; padding:14px 16px; border-radius:6px; overflow-x:auto; }
-    pre code { background:none; padding:0; }
-    footer { margin-top:64px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>stochastic-latent-bounds</title>
+  <meta name="description" content="Sound stochastic Lyapunov certificates for high-dimensional physical systems via invertible latent transports">
+  <style>
+    body { background-color:#fff; padding:50px; font:14px/1.5 "Noto Sans","Helvetica Neue",Helvetica,Arial,sans-serif; color:#727272; font-weight:400; }
+    h1,h2,h3,h4,h5,h6 { color:#222; margin:0 0 20px; }
+    p,ul,ol,table,pre,dl { margin:0 0 20px; }
+    h1,h2,h3 { line-height:1.1; }
+    h1 { font-size:28px; } h2 { color:#393939; } h3 { color:#494949; }
+    a { color:#267CB9; text-decoration:none; }
+    a:hover,a:focus { color:#069; font-weight:bold; }
+    strong { color:#222; font-weight:700; }
+    .wrapper { width:860px; margin:0 auto; }
+    header { width:270px; float:left; position:fixed; -webkit-font-smoothing:subpixel-antialiased; }
+    header h1 a { color:#222; }
+    section { width:500px; float:right; padding-bottom:50px; }
+    code,pre { font-family:Monaco,"Bitstream Vera Sans Mono","Lucida Console",Terminal,Consolas,"Liberation Mono","DejaVu Sans Mono",monospace; color:#333; }
+    pre { padding:8px 15px; background:#f8f8f8; border-radius:5px; border:1px solid #e5e5e5; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:5px 10px; border-bottom:1px solid #e5e5e5; }
+    dt { color:#444; font-weight:700; }
+    th { color:#444; }
+    img { max-width:100%; }
+    figcaption { font-size:11px; color:#777; margin-top:4px; }
+    figure { margin:0 0 20px; }
+    hr { border:0; background:#e5e5e5; height:1px; margin:0 0 20px; }
+    footer { width:270px; float:left; position:fixed; bottom:50px; -webkit-font-smoothing:subpixel-antialiased; }
+    .formula { font-family:Monaco,Consolas,"Liberation Mono",monospace; font-size:12.5px; background:#f8f8f8; border-left:3px solid #aa0000; padding:8px 12px; margin:0 0 20px; overflow-x:auto; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:6px; margin:0 0 20px; }
+    .stat { border:1px solid #e5e5e5; border-radius:5px; padding:6px 8px; }
+    .stat .v { font-size:15px; color:#222; font-weight:700; }
+    .stat .k { font-size:10px; color:#777; line-height:1.35; margin-top:2px; }
+    .badges { color:#777; }
+    .badges span { border:1px solid #e5e5e5; border-radius:999px; padding:1px 9px; margin-right:5px; font-size:11px; display:inline-block; }
+    @media print, screen and (max-width: 960px) {
+      div.wrapper { width:auto; margin:0; }
+      header,section,footer { float:none; position:static; width:auto; }
+      header { padding-right:320px; }
+      section { border:1px solid #e5e5e5; border-width:1px 0; padding:20px 0; margin:0 0 20px; }
+    }
+    @media print, screen and (max-width: 720px) {
+      body { word-wrap:break-word; padding:30px; } header { padding:0; }
+    }
+    @media print, screen and (max-width: 480px) { body { padding:15px; } }
+  </style>
 </head>
 <body>
-<div class="wrap">
-<header class="site">
+<div class="wrapper">
+<header>
   <h1><a href="index.html">stochastic&#8209;latent&#8209;bounds</a></h1>
-  <nav class="links"><a href="index.html">Overview</a><a href="results.html">Results</a><a href="api.html">API</a><a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a></nav>
+  <p>Sound stochastic Lyapunov certificates for high&#8209;dimensional physical systems, via invertible latent transports</p>
+  <p class="view"><a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">View My GitHub Profile</a></p>
+  <strong><a href="index.html">Overview</a></strong><br>
+  <strong><a href="results.html">Results</a></strong><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#tightness">Tightness (exp3)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#scaling">Scaling (exp1)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#hotswap">Hot&#8209;swap gate (exp2)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#ladder">Effort ladder (exp1b)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#cmapss">C&#8209;MAPSS fleet (exp4)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#airquality">Air quality (exp5)</a><br>
+  <strong><a href="math.html">Mathematics</a></strong><br>
+  <strong><a href="api.html">API</a></strong><br>
 </header>
-<h1 id="the-mathematics-of-the-certificate">The mathematics of the certificate</h1>
+
+<section>
+<h1>The mathematics of the certificate</h1>
 <p>This document states exactly what is claimed, what is verified by search, and what is
 measured. Notation: the physical state is <code>x</code> in <code>R^D</code>, the transport maps <code>y = T(x)</code>
 with <code>T</code> an exactly invertible diffeomorphism and <code>T(x*) = 0</code> at the equilibrium; the
 latent split is <code>y = (eta, rho)</code> with <code>eta</code> in <code>R^d</code> the certified factor and <code>rho</code> in
 <code>R^m</code> the transversal residual (<code>m = D - d</code>).</p>
-<h2 id="1-the-physical-system">1. The physical system</h2>
+<h2>1. The physical system</h2>
 <p>An N-link planar arm with point masses at the link tips under gravity-compensated PD
 control, with process noise in the velocity block:</p>
 <pre><code>M(theta) theta_ddot + c(theta, theta_dot) + G(theta) = tau,
@@ -55,7 +94,7 @@ axis-aligned in velocity coordinates (<code>additive</code>: <code>Sigma = sigma
 </code></pre>
 <p>is evaluated with autograd and used <strong>only</strong> to score the learned world model — never
 inside the certificate.</p>
-<h2 id="2-the-learned-objects-and-their-by-construction-properties">2. The learned objects and their by-construction properties</h2>
+<h2>2. The learned objects and their by-construction properties</h2>
 <p><strong>Transport</strong> (<code>sbounds.transport</code>): RealNVP-style affine coupling layers with
 tanh-bounded log-scales, so <code>exp(s)</code> lives in a known compact interval, the Jacobian is
 never degenerate, and <code>T(x) = R((x-x*)/x_scale) - R(0)</code> satisfies <code>T(x*) = 0</code> exactly.
@@ -74,7 +113,7 @@ that lambda_max of the symmetric part of <code>A_rr</code> is <em>useless</em> a
 mechanical system: in position-velocity coordinates the symmetric part of any damped
 mechanical linearisation has a non-negative largest eigenvalue. Contraction must be
 measured through a metric; that is what <code>Q</code> is for.</p>
-<h2 id="3-the-certificate">3. The certificate</h2>
+<h2>3. The certificate</h2>
 <p>With <code>B(x) = J T(x) Sigma(x)</code> and <code>W(y) = V(eta) + kappa rho^T Q rho</code>:</p>
 <pre><code>L W(y) = grad_eta V . F_eta + 2 kappa rho^T Q F_rho
          + 1/2 [ tr(BB^T_{eta,eta} Hess V) + 2 kappa tr(BB^T_{rho,rho} Q) ]
@@ -91,7 +130,7 @@ demanding it certifies the empty set. The certificate is the thresholded conditi
 <p>exponential practical stability to the explicit noise ball of stationary radius
 <code>(beta + tol)/alpha</code>. <code>beta</code> is evaluated exactly (autograd at the origin);
 <code>tol</code> is explicit slack, reported.</p>
-<h2 id="4-what-the-search-actually-bounds">4. What the search actually bounds</h2>
+<h2>4. What the search actually bounds</h2>
 <p>The verifier computes a <strong>sound upper bound</strong> on <code>sup_region (L W + alpha W)</code> per box:</p>
 <ul>
 <li><code>grad_eta V</code> and <code>Hess V</code> as interval enclosures (interval forward-mode AD, ternary
@@ -119,7 +158,7 @@ demanding it certifies the empty set. The certificate is the thresholded conditi
 </ul>
 <p>The reported certified fraction is a <strong>one-sided lower bound</strong>: a box counts only when
 its sound upper bound is <code>&lt;= beta + tol</code>; unresolved boxes are unknown, never certified.</p>
-<h2 id="5-the-tightness-failure-mode-why-c-s-certifies-nothing">5. The tightness failure mode (why C-S certifies nothing)</h2>
+<h2>5. The tightness failure mode (why C-S certifies nothing)</h2>
 <p>Cauchy–Schwarz gives <code>1/2 tr(BB^T H) &lt;= 1/2 ||B||_F^2 ||Hess W||_F</code>. The slack of this
 bound is bounded away from zero as the box shrinks to the origin — measured: at a box of
 half-width 1e-3 the excess over <code>beta</code> is ~0.22 vs ~1e-4 for the interval trace. Since
@@ -127,7 +166,7 @@ the certificate constant is <code>beta + tol</code> with small <code>tol</code>,
 radius</em>, while the tight trace certifies every box up to an explicit radius. This is the
 load-bearing numerical fact of the repo, and it is both measured (<code>exp3</code>) and unit-tested
 (point box at the origin must reproduce <code>beta</code> to 1e-6).</p>
-<h2 id="6-counterexamples-vs-looseness">6. Counterexamples vs looseness</h2>
+<h2>6. Counterexamples vs looseness</h2>
 <p>A failing <em>bound</em> is not a failing <em>certificate</em>: interval branching fails for two
 reasons that must be separated.</p>
 <ul>
@@ -140,7 +179,7 @@ generator (autograd) at those points; both counts are reported, because the shar
 failures that are looseness is the honest measure of how much of the certification
 budget is spent on the bound rather than on the system. Retraining uses only genuine
 violations, against either the model drift or the exact push-forward oracle.</p>
-<h2 id="7-certified-online-adaptation">7. Certified online adaptation</h2>
+<h2>7. Certified online adaptation</h2>
 <p>Two certificate/model pairs are alive: the active (certified) pair and a shadow pair
 training online on fresh plant data. A candidate swap is accepted only if the sound
 bound certifies the shadow pair over the region at threshold <code>beta + tol</code>. Unsafe swaps
@@ -148,7 +187,47 @@ are counted by evaluating the <em>exact plant</em> generator (push-forward oracl
 probe points after the swap — so the gate's value is a falsifiable number, not a
 design assertion. If the gate keeps rejecting (plant drifted out of scope), the region
 shrinks and that time is reported.</p>
-<h2 id="8-what-is-deliberately-loose">8. What is deliberately loose</h2>
+<h2>9. Why the factorised verifier scales with the latent dimension (proposition)</h2>
+<p>The empirical ladder (factor mode certifies at budgets full mode never reaches) is not
+an accident of the benchmark; it follows from the cascade structure that training
+enforces. Write the latent dynamics in block form, with <code>eta</code> the certified factor
+(d coordinates) and <code>rho</code> the transversal block (m = D - d):</p>
+<pre><code>d/dt (eta, rho) = ( F_ee(eta) + g_e(rho),  A_rr rho + h(eta) )
+</code></pre>
+<p>with the <em>cascade constraints</em> <code>F_e in R^{d x m} = 0</code> (eta-rows read only eta; enforced
+hard in training) and the rho-rows reading eta only through a bounded nonlinearity.
+The per-box sound bound has the shape</p>
+<pre><code>sup_box (L W + alpha W)  &lt;=  C_eta(w_eta)  +  C_couple(w_eta, rho_ball)  +  kappa*lam_Q*(s^2 - 2 s b_Q)
+</code></pre>
+<p>where <code>w_eta</code> is the eta-box half-width, <code>b_Q</code> bounds the rho-row coupling over the
+box, and <code>s</code> is the completing-the-square slack. Two properties close the argument:</p>
+<ol>
+<li><strong>Only d coordinates are subdivided.</strong> In factor mode the search refines <code>w_eta</code>
+   while the rho block is handled in closed form over its ball. The <code>C_couple</code> term is
+   evaluated through the eta-box (the rho-rows read eta), so every term decreases as
+   the eta subdivision refines: <code>C_eta = O(w_eta^2)</code> (centered-form second-order term
+   with fixed quadratic V, whose Hessian has zero interval width) and
+   <code>C_couple = O(L_h w_eta)</code> with <code>L_h</code> the (spectrally capped) Lipschitz constant of
+   the eta-forcing. Hence the bound crosses the threshold <code>beta + tol</code> at a critical
+   width <code>w*</code> that depends on d, kappa, lam_Q, and the caps -- but <strong>not on D</strong>.</li>
+<li><strong>Cell count is exponential in the number of subdivided coordinates.</strong> A uniform
+   refinement to width <code>w*</code> needs <code>(scale/w*)^d</code> cells in factor mode and
+   <code>(scale/w*)^D</code> in full mode. With the per-cell cost identical (same bound family,
+   same Rho rings), the effort ratio at equal threshold is<pre><code>effort(full) / effort(factor)  =  (scale/w*)^{D - d}.
+</code></pre>
+</li>
+</ol>
+<p>This is the d-vs-D separation: at fixed soundness (same bound, same threshold, same
+region semantics), the certification effort is governed by the latent dimension d of
+the certified factor, while the full-dimensional verifier pays <code>(D - d)</code> additional
+exponential factors. The measured ladder is this proposition with real constants:
+full mode's <code>w*</code> under its budget is orders of magnitude above the threshold crossing
+(<code>worst_upper ~ 10^6</code> at D = 8 vs threshold ~ 0.05), and the gap widens with D because
+the <em>constant</em> in the full-mode bound also grows (the coupling norms and Hessian
+terms accumulate over all D coordinates). The proposition is conservative -- it
+treats b_Q, L_h as fixed -- so it lower-bounds the true advantage of the factorised
+verifier as D grows.</p>
+<h2>10. What is deliberately loose</h2>
 <ul>
 <li>The interval Jacobian chain rule composes interval matrices without exploiting
   correlations — sound, not minimal.</li>
@@ -157,7 +236,12 @@ shrinks and that time is reported.</p>
   of a state-dependent inertia); those runs fall back to the C-S bound and say so.</li>
 <li>All interval outputs are inflated outward by 1e-12 relative (≈4000 ulps float64).</li>
 </ul>
-<footer>Rendered from <code>docs/math.md</code> in the repository &mdash; the markdown file is authoritative.</footer>
+</section>
+
+<footer>
+  <p>Generated by <code>tools/site.py</code> from committed result files.<br>
+  Regenerate: <code>python tools/figures.py &amp;&amp; python tools/site.py</code></p>
+</footer>
 </div>
 </body>
 </html>

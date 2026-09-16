@@ -6,190 +6,221 @@
   <title>stochastic-latent-bounds</title>
   <meta name="description" content="Sound stochastic Lyapunov certificates for high-dimensional physical systems via invertible latent transports">
   <style>
-    :root {
-      --ink: #1a1a1a; --muted: #6b6b6b; --line: #e5e5e5;
-      --accent: #c62f2f; --blue: #33608c; --bg: #ffffff;
-      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    body { background-color:#fff; padding:50px; font:14px/1.5 "Noto Sans","Helvetica Neue",Helvetica,Arial,sans-serif; color:#727272; font-weight:400; }
+    h1,h2,h3,h4,h5,h6 { color:#222; margin:0 0 20px; }
+    p,ul,ol,table,pre,dl { margin:0 0 20px; }
+    h1,h2,h3 { line-height:1.1; }
+    h1 { font-size:28px; } h2 { color:#393939; } h3 { color:#494949; }
+    a { color:#267CB9; text-decoration:none; }
+    a:hover,a:focus { color:#069; font-weight:bold; }
+    strong { color:#222; font-weight:700; }
+    .wrapper { width:860px; margin:0 auto; }
+    header { width:270px; float:left; position:fixed; -webkit-font-smoothing:subpixel-antialiased; }
+    header h1 a { color:#222; }
+    section { width:500px; float:right; padding-bottom:50px; }
+    code,pre { font-family:Monaco,"Bitstream Vera Sans Mono","Lucida Console",Terminal,Consolas,"Liberation Mono","DejaVu Sans Mono",monospace; color:#333; }
+    pre { padding:8px 15px; background:#f8f8f8; border-radius:5px; border:1px solid #e5e5e5; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:5px 10px; border-bottom:1px solid #e5e5e5; }
+    th { color:#444; }
+    img { max-width:100%; }
+    figure { margin:0 0 20px; }
+    figcaption { font-size:11px; color:#777; margin-top:4px; }
+    hr { border:0; background:#e5e5e5; height:1px; margin:0 0 20px; }
+    footer { width:270px; float:left; position:fixed; bottom:50px; -webkit-font-smoothing:subpixel-antialiased; }
+    .formula { font-family:Monaco,Consolas,"Liberation Mono",monospace; font-size:12.5px; background:#f8f8f8; border-left:3px solid #aa0000; padding:8px 12px; margin:0 0 20px; overflow-x:auto; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:6px; margin:0 0 20px; }
+    .stat { border:1px solid #e5e5e5; border-radius:5px; padding:6px 8px; }
+    .stat .v { font-size:15px; color:#222; font-weight:700; }
+    .stat .k { font-size:10px; color:#777; line-height:1.35; margin-top:2px; }
+    .badges { color:#777; }
+    .badges span { border:1px solid #e5e5e5; border-radius:999px; padding:1px 9px; margin-right:5px; font-size:11px; display:inline-block; }
+    @media print, screen and (max-width: 960px) {
+      div.wrapper { width:auto; margin:0; }
+      header,section,footer { float:none; position:static; width:auto; }
+      header { padding-right:320px; }
+      section { border:1px solid #e5e5e5; border-width:1px 0; padding:20px 0; margin:0 0 20px; }
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; color: var(--ink); background: var(--bg);
-      font: 16px/1.65 "Helvetica Neue", Helvetica, Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
+    @media print, screen and (max-width: 720px) {
+      body { word-wrap:break-word; padding:30px; } header { padding:0; }
     }
-    .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 96px; }
-    header.site { border-bottom: 1px solid var(--line); padding: 28px 0 22px; margin-bottom: 40px; }
-    header.site h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
-    header.site h1 a { color: var(--ink); text-decoration: none; }
-    header.site h1 .accent { color: var(--accent); }
-    header.site p.tag { margin: 0; color: var(--muted); font-size: 14.5px; }
-    nav.links { margin-top: 14px; font-size: 14px; }
-    nav.links a { color: var(--blue); text-decoration: none; margin-right: 18px; }
-    nav.links a:hover { text-decoration: underline; }
-    h2 { font-size: 19px; margin: 44px 0 10px; letter-spacing: -0.01em; }
-    h3 { font-size: 16px; margin: 28px 0 8px; }
-    p.lede { font-size: 17.5px; color: var(--ink); }
-    code, pre { font-family: var(--mono); font-size: 13.5px; }
-    code { background: #f6f6f6; padding: 1px 5px; border-radius: 3px; }
-    pre { background: #f6f6f6; padding: 14px 16px; border-radius: 6px; overflow-x: auto; line-height: 1.5; }
-    pre code { background: none; padding: 0; }
-    figure { margin: 26px 0 8px; }
-    figure img, figure svg { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; }
-    figcaption { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
-    table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 18px 0; }
-    th, td { border-bottom: 1px solid var(--line); padding: 8px 10px; text-align: right; }
-    th:first-child, td:first-child { text-align: left; }
-    th { font-weight: 600; color: var(--muted); }
-    .badge { display: inline-block; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; margin-right: 6px; }
-    .muted { color: var(--muted); }
-    .formula { font-family: var(--mono); font-size: 14px; background: #fafafa; border-left: 3px solid var(--accent); padding: 10px 14px; margin: 14px 0; overflow-x: auto; }
-    footer { margin-top: 64px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
-    footer a { color: var(--blue); text-decoration: none; }
-    .hero { background: #16181d; color: #f2f2f2; margin: -40px -24px 44px; padding: 52px 32px 44px; border-radius: 0 0 10px 10px; }
-    .hero h1 { font-size: 30px; margin: 0 0 8px; letter-spacing: -0.02em; }
-    .hero h1 .accent { color: #ff6b6b; }
-    .hero p.tag { color: #b9bec9; font-size: 16px; max-width: 640px; margin: 0 0 18px; }
-    .hero .formula { background: #1f2229; border-left-color: #ff6b6b; color: #e8e8e8; }
-    .hero .btns { margin-top: 22px; }
-    .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; font-size: 14.5px; text-decoration: none; margin-right: 10px; border: 1px solid #3a3f4b; color: #f2f2f2; }
-    .btn.primary { background: var(--accent); border-color: var(--accent); }
-    .btn:hover { filter: brightness(1.12); }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 26px 0 8px; }
-    .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; font-size: 14px; line-height: 1.55; }
-    .card b { display: block; margin-bottom: 5px; font-size: 14.5px; }
-    .card .m { color: var(--muted); }
-    .statrow { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 6px; }
-    .stat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; min-width: 130px; }
-    .stat .v { font-size: 21px; font-weight: 650; letter-spacing: -0.01em; }
-    .stat .k { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+    @media print, screen and (max-width: 480px) { body { padding:15px; } }
   </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrapper">
+<header>
+  <h1><a href="index.html">stochastic&#8209;latent&#8209;bounds</a></h1>
+  <p>Sound stochastic Lyapunov certificates for high&#8209;dimensional physical systems, via invertible latent transports</p>
+  <p class="view"><a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">View My GitHub Profile</a></p>
+  <strong><a href="#welcome">Welcome!</a></strong>
+  <br>
+  <strong><a href="#started">Getting Started</a></strong>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#installation">Installation</a>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#reproduce">Reproduce the results</a>
+  <br>
+  <strong><a href="#how">How it works</a></strong>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#factorisation">The factorised certificate</a>
+  <br>
+  &nbsp;&nbsp;&nbsp;&nbsp;<a href="#noise">The noise floor, honestly</a>
+  <br>
+  <strong><a href="#verified">What is verified, what is measured</a></strong>
+  <br>
+  <strong><a href="#data">Real physical data</a></strong>
+  <br>
+  <strong><a href="#results">Results</a></strong>
+  <br>
+  <strong><a href="#help">Help</a></strong>
+  <br>
+</header>
 
-<div class="hero">
-  <h1>stochastic&#8209;latent&#8209;bounds<span class="accent">.</span></h1>
-  <p class="tag">Sound Lyapunov certificates for high&#8209;dimensional stochastic physical systems &mdash; learned coordinates, verified by interval arithmetic, never trusted on samples alone.</p>
-  <div class="formula">W(y) = V(&eta;) + &kappa; &rho;&#7481; Q &rho;, &nbsp;&nbsp; L W + &alpha; W &le; &beta; + tol &nbsp;&nbsp;&#8658;&nbsp;&nbsp; E W(t) &le; e&#8315;&#8311;t W(0) + ((&beta;+tol)/&alpha;)(1 &minus; e&#8315;&#8311;t)</div>
-  <div class="btns">
-    <a class="btn primary" href="results.html">Results</a>
-    <a class="btn" href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a>
-    <a class="btn" href="api.html">API</a>
-    <a class="btn" href="math.html">Mathematics</a>
-  </div>
+<section>
+
+<h2 id="welcome">Welcome!</h2>
+<figure>
+  <img src="assets/hero_latent.gif" alt="Trajectories and the certified latent region">
+  <figcaption>Latent-space view of the certified system: trajectories of the physical SDE
+  pushed through the learned invertible transport <code>T</code>, the certified
+  &eta;-region (green) and the noise ball promised by the certificate. Generated by
+  <code>tools/gifgen.py</code> from the committed arm4 checkpoint.</figcaption>
+</figure>
+<p>
+  <strong>stochastic-latent-bounds</strong> turns a stochastic physical system into
+  coordinates where a Lyapunov certificate is <em>searchable</em>: a learned,
+  exactly invertible transport factors the state into a low&#8209;dimensional certified
+  factor and a transversal residual, and the certificate is verified by interval
+  branch&#8209;and&#8209;bound &mdash; never assumed from samples.
+</p>
+<div class="stats">
+  <div class="stat"><div class="v">64.9%</div><div class="k">region certified at D=8 vs 0% full&#8209;dim, same budget</div></div>
+  <div class="stat"><div class="v">8 / 0</div><div class="k">unsafe swaps, naive vs gated, under real fleet aging</div></div>
+  <div class="stat"><div class="v">2.82 sd</div><div class="k">attractor shift measured on NASA C&#8209;MAPSS</div></div>
+  <div class="stat"><div class="v">2</div><div class="k">real datasets: turbofan fleet + Beijing air quality</div></div>
 </div>
-
-<p class="lede">
-  A trained world model plus a learned diffeomorphism turn a stochastic physical
-  system into coordinates where a Lyapunov certificate is <em>searchable</em>: the
-  certificate is verified by interval branch&#8209;and&#8209;bound with sound bounds, not
-  assumed from sampling. Every published number on this site is produced by the
-  committed code and committed result files.
+<p class="badges">
+  <span>stochastic Lyapunov</span><span>interval arithmetic</span><span>invertible transports</span><span>branch &amp; bound</span><span>world models</span>
 </p>
-
 <p>
-  <span class="badge">stochastic Lyapunov</span>
-  <span class="badge">interval arithmetic</span>
-  <span class="badge">invertible transports</span>
-  <span class="badge">branch &amp; bound</span>
-  <span class="badge">world models</span>
+  Classical certification does not scale: sum&#8209;of&#8209;squares and SMT methods collapse
+  under the curse of dimensionality, while neural Lyapunov functions are usually
+  validated only at sampled points. Every number published on this site is rendered
+  from committed <code>results/*.json</code> produced by the committed code &mdash;
+  the site cannot drift from what the experiments actually did.
 </p>
 
-<h2>The idea</h2>
-<div class="statrow">
-  <div class="stat"><div class="v">D = 8&ndash;20</div><div class="k">physical state dimension (N&#8209;link arm)</div></div>
-  <div class="stat"><div class="v">64.9%</div><div class="k">region certified at D=8 (vs 0% for full&#8209;dim BnB, same budget)</div></div>
-  <div class="stat"><div class="v">8 / 0</div><div class="k">real C&#8209;MAPSS aging drift: unsafe swaps, naive vs gated</div></div>
-  <div class="stat"><div class="v">2.82 sd</div><div class="k">identified attractor shift under real fleet aging</div></div>
-  <div class="stat"><div class="v">0</div><div class="k">sample&#8209;based assumptions &mdash; all bounds are verified, not estimated</div></div>
-</div>
-<div class="cards">
-  <div class="card"><b>Learned coordinates</b><span class="m">An exactly invertible transport <code>T</code> factors the state into a low&#8209;dimensional certified factor &eta; and a transversal residual &rho; &mdash; zero information is discarded.</span></div>
-  <div class="card"><b>Sound bounds</b><span class="m">Branch&#8209;and&#8209;bound over the region with interval enclosures: exact Ito trace, centered drift forms, outward rounding. No sample&#8209;based &ldquo;certificates&rdquo;.</span></div>
-  <div class="card"><b>Validated on real fleet data</b><span class="m">Plants identified from NASA C&#8209;MAPSS turbofan trajectories (FD001, 100 engines run to failure); the aging drift between fleet eras is detected by the certificate probe and blocked by the hot&#8209;swap gate.</span></div>
-  <div class="card"><b>Honest noise floor</b><span class="m">Additive noise makes <code>L W(0) = &beta; &gt; 0</code>; the classical condition certifies the empty set. The thresholded certificate states an explicit noise ball instead.</span></div>
-  <div class="card"><b>Gated adaptation</b><span class="m">A shadow network re&#8209;learns online behind a certified acceptance gate; swaps that would violate the certificate are rejected, and that is measured.</span></div>
-</div>
-<p>
-  Classical Lyapunov certification does not scale: sum&#8209;of&#8209;squares and SMT
-  methods collapse under the curse of dimensionality, while neural Lyapunov
-  functions are usually validated only at sampled points. This framework
-  <strong>factors</strong> the state space with an exactly invertible transport
-  <code>T</code> into a low&#8209;dimensional certified factor &eta; and a transversal
-  residual &rho;. A certificate
-</p>
-<div class="formula">W(y) = V(&eta;) + &kappa; &rho;&#7481; Q &rho;, &nbsp;&nbsp; L W + &alpha; W &le; &beta; + tol</div>
-<p>
-  is then verified over a region by branch&#8209;and&#8209;bound where the bound on
-  <code>L W + &alpha; W</code> is computed with sound enclosures: an exact interval
-  Ito trace <code>&frac12; tr(B B&#7481; Hess W)</code> with <code>B = J T(x) &Sigma;(x)</code>,
-  <b>centered (mean&#8209;value) drift bounds</b> &mdash; the residual is evaluated exactly at
-  the box center and the deviation bounded by a Jacobian enclosure. Because the residual is
-  a <b>cascade</b> (every row reads only the factor coordinates &eta;), the enclosure has
-  exact zeros on the transversal columns and the remainder is <em>quadratic</em> in box
-  radius &mdash; and outward rounding everywhere. Both
-  choices make the bound converge under subdivision (raw interval propagation is linear and
-  certifies nothing at region scale); the interval trace even converges to the exact
-  generator on degenerate boxes, which is what makes certification near the origin possible
-  at all.
-</p>
-
-<h2>The noise floor, honestly</h2>
-<p>
-  With additive process noise the origin is <em>not</em> an equilibrium of the SDE:
-  paths leave it immediately, so <code>L W(0) = &frac12; tr(B B&#7481; Hess W)(0) = &beta; &gt; 0</code>
-  and the classical condition <code>L W + &alpha; W &le; 0</code> certifies the empty set, always.
-  The attainable statement is the thresholded certificate
-</p>
-<div class="formula">L W + &alpha; W &le; &beta; + tol &nbsp;&Longrightarrow;&nbsp; E[W(t)] &le; e&#8315;&#8311;t W(0) + ((&beta;+tol)/&alpha;)(1 &minus; e&#8315;&#8311;t)</div>
-<p>
-  i.e. exponential practical stability to an explicit noise ball of stationary
-  radius <code>(&beta; + tol)/&alpha;</code>. <code>&beta;</code> is evaluated exactly at the origin;
-  <code>tol</code> is explicit slack, reported rather than hidden.
-</p>
-
-<h2>What is verified, what is measured</h2>
-<ul>
-  <li><strong>Soundness</strong> is tested directly: across random boxes the sound bound must dominate the exact generator at every sampled interior point, and any box the verifier declares certified must satisfy the certificate at every sampled point (<code>tests/test_soundness.py</code>).</li>
-  <li><strong>Tightness</strong> is tested directly: a point box at the origin must reproduce &beta; to 1e-6 &mdash; an assertion the Cauchy&#8209;Schwarz bound structurally cannot pass.</li>
-  <li><strong>The world model</strong> is scored against the analytic Ito push&#8209;forward of the real plant, so the learned&#8209;vs&#8209;exact gap is measured, including the Ito correction term most latent models silently absorb.</li>
-  <li><strong>Online adaptation</strong> runs a shadow network behind a certified acceptance gate; unsafe swaps after a drift change are counted against the exact plant generator, so the gate's value is falsifiable.</li>
-</ul>
-
-<h2>Quick start</h2>
+<h2 id="started">Getting Started</h2>
+<h3 id="installation">Installation</h3>
 <pre><code>git clone https://github.com/sehajr-singhs/stochastic-latent-bounds
 cd stochastic-latent-bounds
 pip install torch pytest
 
 # soundness + tightness test suite (CPU, float64)
-python -m pytest tests/ -q
-
-# headline experiments (checkpointed; see experiments/)
-python experiments/exp1_main.py          # factor vs full scaling
+python -m pytest tests/ -q</code></pre>
+<h3 id="reproduce">Reproduce the results</h3>
+<pre><code>python experiments/exp1_main.py          # factor vs full scaling (N-link arms)
 python experiments/exp2_shadow.py        # gated hot-swap under plant drift
 python experiments/exp3_tightness.py     # tight trace vs Cauchy-Schwarz
-python tools/figures.py                  # regenerate the figures from results/</code></pre>
+python experiments/exp4_realtrend.py     # NASA C-MAPSS fleet (Kaggle)
+python experiments/exp5_airquality.py    # Beijing air quality (Kaggle)
+python tools/figures.py                  # regenerate figures from results/</code></pre>
 
-<h2>Results</h2>
+<h2 id="how">How it works</h2>
+<h3 id="factorisation">The factorised certificate</h3>
+<p>
+  An exactly invertible transport <code>T</code> (affine coupling layers,
+  <code>T(x*)=0</code> at the equilibrium) maps the physical state <code>x</code> to
+  latent coordinates <code>y=(eta, rho)</code> &mdash; nothing is discarded, the map is a
+  diffeomorphism. A certificate
+</p>
+<div class="formula">W(y) = V(&eta;) + &kappa; &rho;&#7481; Q &rho;, &nbsp;&nbsp; L W + &alpha; W &le; &beta; + tol</div>
+<p>
+  is then verified over a region by worst&#8209;first branch&#8209;and&#8209;bound. Factor mode
+  searches only the d&#8209;dimensional &eta;&#8209;box (the &rho;&#8209;side is handled by the Lyapunov
+  metric in closed form); full mode searches all D coordinates. The soundness of the
+  bound is what makes the difference a theorem, not a tune:
+</p>
 <figure>
-  <img src="assets/fig1_tightness.svg" alt="Tightness sweep: bound excess over the noise floor versus box width">
+  <img src="assets/bnb_subdivide.gif" alt="Branch-and-bound subdivision of the latent box">
+  <figcaption>Worst&#8209;first interval branch&#8209;and&#8209;bound subdividing the latent
+  &eta;&#8209;box: red boxes still violate the sound upper bound on
+  <code>L W + &alpha; W</code>, green boxes are certified against
+  <code>&beta;+tol</code>, grey boxes are resolved. Generated by
+  <code>tools/gifgen.py</code> from the same committed checkpoint.</figcaption>
+</figure>
+<p>
+  The bound on <code>L W + &alpha; W</code> is computed with sound enclosures: an exact
+  interval Ito trace <code>&frac12; tr(BB&#7481; Hess W)</code>, centered (mean&#8209;value) drift
+  forms whose residual enclosure is a <b>cascade</b> (exact zeros on transversal
+  columns, remainder quadratic in box radius), and outward rounding everywhere. Both
+  choices make the bound converge under subdivision; the interval trace even converges
+  to the exact generator on degenerate boxes, which is what makes certification near
+  the origin possible at all.
+</p>
+<h3 id="noise">The noise floor, honestly</h3>
+<p>
+  With additive process noise the origin is <em>not</em> an equilibrium of the SDE:
+  paths leave it immediately, so <code>L W(0) = &beta; &gt; 0</code> and the classical
+  condition certifies the empty set, always. The attainable statement is the
+  thresholded certificate
+</p>
+<div class="formula">L W + &alpha; W &le; &beta; + tol &nbsp;&Longrightarrow;&nbsp; E[W(t)] &le; e&#8315;&#8311;t W&#8320; + ((&beta;+tol)/&alpha;)(1 &minus; e&#8315;&#8311;t)</div>
+<p>
+  i.e. exponential practical stability to an explicit noise ball of stationary radius
+  <code>(&beta;+tol)/&alpha;</code>. <code>&beta;</code> is evaluated exactly at the origin;
+  <code>tol</code> is explicit slack, reported rather than hidden.
+</p>
+
+<h2 id="verified">What is verified, what is measured</h2>
+<ul>
+  <li><strong>Soundness</strong> is tested directly: across random boxes the sound bound must dominate the exact generator at every sampled interior point (<code>tests/test_soundness.py</code>).</li>
+  <li><strong>Tightness</strong> is tested directly: a point box at the origin must reproduce &beta; to 1e-6 &mdash; an assertion the Cauchy&#8209;Schwarz bound structurally cannot pass.</li>
+  <li><strong>The world model</strong> is scored against the analytic Ito push&#8209;forward of the identified plant, so the learned&#8209;vs&#8209;exact gap is measured, including the Ito correction term most latent models silently absorb.</li>
+  <li><strong>Online adaptation</strong> runs a shadow network behind a certified acceptance gate; unsafe swaps after a drift change are counted against the exact plant generator, so the gate's value is falsifiable.</li>
+</ul>
+
+<h2 id="data">Real physical data</h2>
+<p>
+  Two real datasets, one pipeline, zero domain&#8209;specific code:
+</p>
+<ul>
+  <li><strong>NASA C&#8209;MAPSS FD001</strong> (turbofan fleet, 100 engines run to failure): per&#8209;era Ornstein&#8209;Uhlenbeck plants identified from real sensor trajectories; the aging drift moves the attractor <strong>2.82 sd</strong>. Under that real drift the sound gate made <strong>0 unsafe swaps</strong> while the naive gate accepted all 8 candidates &mdash; every one unsafe.</li>
+  <li><strong>Beijing PRSA</strong> (multi&#8209;site air quality, hourly 2013&ndash;2017): the drift event is the real seasonal regime shift (municipal heating season); the identified attractor moves <strong>3.85 sd</strong> between regimes.</li>
+</ul>
+
+<h2 id="results">Results</h2>
+<figure>
+  <img src="assets/fig1_tightness.svg" alt="Tightness sweep: bound excess versus box width">
   <figcaption>
-    Excess of the sound bound over the noise floor &beta; on shrinking boxes around
-    the origin (log&#8209;log). The Cauchy&#8209;Schwarz Ito bound has irreducible slack and
-    certifies nothing at any radius; the tight interval trace converges to the
-    exact generator and certifies up to the tolerance line.
+    Excess of the sound bound over the noise floor &beta; on shrinking boxes around the
+    origin (log&#8209;log). The Cauchy&#8209;Schwarz Ito bound has irreducible slack and
+    certifies nothing at any radius; the tight interval trace converges to the exact
+    generator and certifies up to the tolerance line.
   </figcaption>
 </figure>
 <p>
-  Full tables, the scaling comparison and the hot&#8209;swap traces are on the
-  <a href="results.html">results page</a>. All numbers are loaded from
-  <code>results/*.json</code> committed next to the code that produced them.
+  Full tables &mdash; scaling, hot&#8209;swap traces, the effort ladder and both real&#8209;data
+  experiments &mdash; are on the <a href="results.html">results page</a>. The mathematics
+  (including the d&#8209;vs&#8209;D effort proposition) is in
+  <a href="math.html">mathematics</a>; the module map is in the <a href="api.html">API</a> page.
 </p>
 
+<h2 id="help">Help</h2>
+<p>
+  The certificate, the sound&#8209;bound constructions and the counterexample&#8209;guided
+  retraining loop are documented in <a href="math.html">mathematics</a>; module&#8209;by&#8209;module
+  roles in the <a href="api.html">API map</a>. Source:
+  <a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">github.com/sehajr-singhs/stochastic-latent-bounds</a>.
+</p>
+
+</section>
+
 <footer>
-  stochastic-latent-bounds &mdash; built as a working demonstration of
-  certifiable world models. Code and results:
-  <a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">github.com/sehajr-singhs/stochastic-latent-bounds</a>
+  <p>stochastic-latent-bounds &mdash; certifiable world models.<br>
+  Code &amp; results:
+  <a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">GitHub</a></p>
 </footer>
 
 </div>
