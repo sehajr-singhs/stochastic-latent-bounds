@@ -241,7 +241,8 @@ def load_ettm2(data_dir: str | None = None, holdout: float = 0.2) -> dict:
     if not torch.isfinite(X).all():
         raise ValueError("non-finite values in ETTm2")
     n_hold = int(X.shape[0] * holdout)
-    Xtr, Xhold = X[:-n_hold], X[-n_hold:]
+    Xtr = X if n_hold == 0 else X[:-n_hold]
+    Xhold = X if n_hold == 0 else X[-n_hold:]
     mu, sd = Xtr.mean(0), Xtr.std(0).clamp_min(1e-9)
     Xz = (X - mu) / sd
 
@@ -254,7 +255,7 @@ def load_ettm2(data_dir: str | None = None, holdout: float = 0.2) -> dict:
     seg = days * 2 + hi_load.to(torch.int64)
 
     return {"X": Xz, "unit": seg, "X_hold": (Xhold - mu) / sd,
-            "unit_hold": seg[-n_hold:], "cols": list(ETT_COLS),
+            "unit_hold": seg if n_hold == 0 else seg[-n_hold:], "cols": list(ETT_COLS),
             "era_hi": hi_load, "era_lo": ~hi_load,
             "stats": {"mu": mu.tolist(), "sd": sd.tolist()}}
 
