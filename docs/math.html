@@ -239,6 +239,41 @@ verifier as D grows.</p>
   of a state-dependent inertia); those runs fall back to the C-S bound and say so.</li>
 <li>All interval outputs are inflated outward by 1e-12 relative (≈4000 ulps float64).</li>
 </ul>
+<h2>11. Statistical protocol for the real-data experiments</h2>
+<p>Every real-data number is reported with its estimation procedure, because the
+identified plants are estimates themselves.</p>
+<p><strong>Identification stability (exp8 stage A).</strong> For each domain the dataset is
+split into two independent halves (odd/even engines for the fleet; disjoint
+timeline blocks for the grid and the air-quality stations). The OU fit is run
+separately on each half and the <em>relative</em> parameter differences
+<code>||A1 - A2|| / ||A1||</code> and <code>||σ1 - σ2|| / ||σ1||</code> are reported as the
+identification noise floor. A claimed drift signal is meaningful only if
+<code>||ΔA||</code> between eras clears this floor — for all three domains it does, by an
+order of magnitude (fleet: drift 0.40 vs floor 0.021).</p>
+<p><strong>Training target (world model).</strong> On real data the per-step drift is small
+relative to the per-step diffusion (sensor sampling), so regressing the latent
+dynamics on raw differences <code>(y1-y0)/dt</code> fits the noise. The world model is
+instead fit to the plant's exact Ito push-forward drift under T (§1), recomputed
+each batch as T moves. The honest data-derived scores (simulated rollout error
+and real held-out one-step error) are still reported — and remain large in the
+noise-dominated regime; the certificate's validity does not rest on them,
+because the verifier bounds the identified plant exactly, and the identification
+is validated in stage A.</p>
+<p><strong>Bootstrap confidence intervals (exp8 stage B).</strong> The pointwise certificate
+residual is evaluated at 2048 fixed probes of the certified region (fixed seed,
+same probes across all methods and domains). The violation fraction's 95%
+confidence interval is the percentile bootstrap (2000 resamples) of the probe
+sample. With p ≈ 0.3 this gives ±0.02 absolute resolution — tighter than any
+claimed effect in the results.</p>
+<p><strong>Sensitivity ablations (exp8 stage C).</strong> The certificate is re-evaluated while
+sweeping one factor at a time on the committed fleet checkpoint: the
+evaluation-points parameter κ ∈ {0.6, …, 1.4}, the identified diffusion scaled
+by {0.5, 1, 2, 3}, and the certified region scaled by {0.6, 0.8, 1.0, 1.25}.
+All other protocol elements are frozen.</p>
+<p><strong>Seed stability (exp8 stage D).</strong> The certificate pipeline is repeated from 3
+seeds (the fixed quadratic V is invariant; the learned latent dynamics varies).
+The spread of the violation fraction and of the noise floor β across seeds is
+reported, so no single-seed number carries the conclusions.</p>
 </section>
 
 <footer>
