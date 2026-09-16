@@ -102,6 +102,15 @@
 <tr><th>arm</th><th>node budget</th><th>factor cert. frac.</th><th>full cert. frac.</th></tr>
 <tr><td>arm4_d2 (D=8, d=2)</td><td>4030</td><td>0.649</td><td>0.000</td></tr>
 <tr><td>arm4_d2 (D=8, d=2)</td><td>8060</td><td>0.649</td><td>0.000</td></tr>
+<tr><td>arm4_d2 (D=8, d=2)</td><td>16120</td><td>0.649</td><td>0.000</td></tr>
+<tr><td>arm4_d2 (D=8, d=2)</td><td>32240</td><td>0.649</td><td>0.000</td></tr>
+<tr><td>arm6_d3 (D=12, d=3)</td><td>4030</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>arm6_d3 (D=12, d=3)</td><td>8060</td><td>0.016</td><td>0.000</td></tr>
+<tr><td>arm6_d3 (D=12, d=3)</td><td>16120</td><td>0.266</td><td>0.000</td></tr>
+<tr><td>arm6_d3 (D=12, d=3)</td><td>32240</td><td>0.591</td><td>0.000</td></tr>
+<tr><td>arm8_d4 (D=16, d=4)</td><td>4030</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>arm8_d4 (D=16, d=4)</td><td>8060</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>arm8_d4 (D=16, d=4)</td><td>16120</td><td>0.000</td><td>0.000</td></tr>
 </table>
 <h2 id="cmapss">5. Real fleet data: NASA C-MAPSS aging drift (exp4)</h2>
 <p>The plants are linear-Gaussian (Ornstein&#8209;Uhlenbeck) models <em>identified from the NASA C-MAPSS FD001 fleet</em> (Kaggle behrad3d/nasa-cmaps): 5 variable sensor channels per engine cycle, healthy era = first half of each engine's life, aged era = second half. The identified aging shift is real: attractor moves 2.82 sd, ||&Delta;A|| = 0.40. Transport + latent world model trained on the healthy identified plant (world-model fit vs exact push-forward: 11.91).</p>
@@ -116,7 +125,17 @@
 </table>
 <figure><img src="assets/fig4_realtrend.svg" alt="Certificate-violation fraction under each identified fleet era. The aging drift moves the plant out of the certified envelope; the gate exists to catch exactly this."><figcaption>Certificate-violation fraction under each identified fleet era. The aging drift moves the plant out of the certified envelope; the gate exists to catch exactly this.</figcaption></figure>
 <h2 id="airquality">6. Real environmental data: Beijing air&#8209;quality drift (exp5)</h2>
-<p class="muted">results/exp5_airquality.json not present.</p>
+<p>A second physical domain: an Ornstein&#8209;Uhlenbeck plant identified from hourly multi&#8209;pollutant records at Aotizhongxin (Beijing PRSA; 10 channels, hourly 2013&ndash;2017). The drift event is the real seasonal regime shift: heating season (Nov&#8209;Mar, municipal schedule) vs the rest of the year. Identified shift: attractor moves 3.85 sd, ||&Delta;A|| = 0.48. Same pipeline as exp4, zero domain&#8209;specific code.</p>
+<table>
+<tr><th>quantity</th><th>value</th></tr>
+<tr><td>noise floor &beta; (identified diffusion)</td><td>3.86e-01</td></tr>
+<tr><td>factor cert. frac. (d=2 of D=10)</td><td>0.000</td></tr>
+<tr><td>full cert. frac. (all D)</td><td>0.000</td></tr>
+<tr><td>era probe: viol. frac. non&#8209;heating</td><td>0.270</td></tr>
+<tr><td>era probe: viol. frac. heating</td><td>0.303</td></tr>
+<tr><td>shadow gate: unsafe swaps (sound / naive)</td><td>0 / 8</td></tr>
+</table>
+<figure><img src="assets/fig5_airquality.svg" alt="Certificate-violation fraction under the two seasonal regimes of the identified air&#8209;quality plant. The heating&#8209;season shift is the drift event the hot&#8209;swap gate is designed for."><figcaption>Certificate-violation fraction under the two seasonal regimes of the identified air&#8209;quality plant. The heating&#8209;season shift is the drift event the hot&#8209;swap gate is designed for.</figcaption></figure>
 <h2>How to reproduce</h2>
 <ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>

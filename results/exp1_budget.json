@@ -53,6 +53,203 @@
           },
           "seconds_factor": 757.5417749881744,
           "seconds_full": 94.55640435218811
+        },
+        {
+          "budget": 16120,
+          "factor": {
+            "certified_fraction": 0.6494140624999999,
+            "nodes": 16126,
+            "seconds": 1515.743782043457,
+            "worst_upper": 0.2049279753272136,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 16126,
+            "seconds": 184.5695390701294,
+            "worst_upper": 59.535373565259434,
+            "fully_certified": false
+          },
+          "seconds_factor": 1515.743782043457,
+          "seconds_full": 184.5695390701294
+        },
+        {
+          "budget": 32240,
+          "factor": {
+            "certified_fraction": 0.6494140624999999,
+            "nodes": 32254,
+            "seconds": 2982.524665117264,
+            "worst_upper": 0.2049279753272136,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 32254,
+            "seconds": 348.8420035839081,
+            "worst_upper": 52.311107322466185,
+            "fully_certified": false
+          },
+          "seconds_factor": 2982.524665117264,
+          "seconds_full": 348.8420035839081
+        }
+      ]
+    },
+    {
+      "tag": "arm6_d3",
+      "n_links": 6,
+      "D": 12,
+      "d_eta": 3,
+      "beta": 0.00016824917621714985,
+      "tol": 0.05,
+      "threshold": 0.05016824917621715,
+      "lam_Q": 0.6258454798362938,
+      "cert_viol_frac": 0.0,
+      "ladder": [
+        {
+          "budget": 4030,
+          "factor": {
+            "certified_fraction": 0.0,
+            "nodes": 4030,
+            "seconds": 916.5887613296509,
+            "worst_upper": 5.318899009062142,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 4030,
+            "seconds": 114.03494191169739,
+            "worst_upper": 244.0742985784648,
+            "fully_certified": false
+          },
+          "seconds_factor": 916.5887613296509,
+          "seconds_full": 114.03494191169739
+        },
+        {
+          "budget": 8060,
+          "factor": {
+            "certified_fraction": 0.01586914062500001,
+            "nodes": 8062,
+            "seconds": 3216.619120836258,
+            "worst_upper": 3.0497540022130734,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 8062,
+            "seconds": 230.77410292625427,
+            "worst_upper": 205.6088719104678,
+            "fully_certified": false
+          },
+          "seconds_factor": 3216.619120836258,
+          "seconds_full": 230.77410292625427
+        },
+        {
+          "budget": 16120,
+          "factor": {
+            "certified_fraction": 0.26611328125,
+            "nodes": 16126,
+            "seconds": 3684.2884147167206,
+            "worst_upper": 1.4207783224649015,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 16126,
+            "seconds": 458.4656205177307,
+            "worst_upper": 198.4801833122847,
+            "fully_certified": false
+          },
+          "seconds_factor": 3684.2884147167206,
+          "seconds_full": 458.4656205177307
+        },
+        {
+          "budget": 32240,
+          "factor": {
+            "certified_fraction": 0.5909118652343756,
+            "nodes": 32254,
+            "seconds": 7428.212174415588,
+            "worst_upper": 0.608924020563132,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 32254,
+            "seconds": 949.9009418487549,
+            "worst_upper": 193.74032308059793,
+            "fully_certified": false
+          },
+          "seconds_factor": 7428.212174415588,
+          "seconds_full": 949.9009418487549
+        }
+      ]
+    },
+    {
+      "tag": "arm8_d4",
+      "n_links": 8,
+      "D": 16,
+      "d_eta": 4,
+      "beta": 0.00026542591616461803,
+      "tol": 0.05,
+      "threshold": 0.05026542591616462,
+      "lam_Q": 0.5707012719714604,
+      "cert_viol_frac": 0.0,
+      "ladder": [
+        {
+          "budget": 4030,
+          "factor": {
+            "certified_fraction": 0.0,
+            "nodes": 4030,
+            "seconds": 1820.742198228836,
+            "worst_upper": 48.58387110036665,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 4030,
+            "seconds": 227.64240527153015,
+            "worst_upper": 427.49227414296377,
+            "fully_certified": false
+          },
+          "seconds_factor": 1820.742198228836,
+          "seconds_full": 227.64240527153015
+        },
+        {
+          "budget": 8060,
+          "factor": {
+            "certified_fraction": 0.0,
+            "nodes": 8062,
+            "seconds": 3657.3177049160004,
+            "worst_upper": 37.085718258764196,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 8062,
+            "seconds": 456.0819306373596,
+            "worst_upper": 421.45449578898894,
+            "fully_certified": false
+          },
+          "seconds_factor": 3657.3177049160004,
+          "seconds_full": 456.0819306373596
+        },
+        {
+          "budget": 16120,
+          "factor": {
+            "certified_fraction": 0.0,
+            "nodes": 16126,
+            "seconds": 7319.3341472148895,
+            "worst_upper": 28.464719585747066,
+            "fully_certified": false
+          },
+          "full": {
+            "certified_fraction": 0.0,
+            "nodes": 16126,
+            "seconds": 915.1302134990692,
+            "worst_upper": 415.0480302652049,
+            "fully_certified": false
+          },
+          "seconds_factor": 7319.3341472148895,
+          "seconds_full": 915.1302134990692
         }
       ]
     }
