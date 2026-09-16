@@ -193,11 +193,41 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp1_budget.json not present.</p>')
 
+    o.append("<h2>5. Real fleet data: NASA C-MAPSS aging drift (exp4)</h2>")
+    d4 = _load("exp4_realtrend.json")
+    if d4:
+        ident, era, c4 = d4["identification"], d4["era"], d4["cert"]
+        o.append(
+            f"<p>The plants are linear-Gaussian (Ornstein&#8209;Uhlenbeck) models "
+            f"<em>identified from the NASA C-MAPSS FD001 fleet</em> ({d4['dataset'].split('(')[-1].rstrip(')')}): "
+            f"{len(ident['sensors'])} variable sensor channels per engine cycle, healthy era = first half "
+            f"of each engine's life, aged era = second half. The identified aging shift is real: "
+            f"attractor moves {ident['attractor_shift']:.2f} sd, ||&Delta;A|| = {ident['dA_norm']:.2f}. "
+            f"Transport + latent world model trained on the healthy identified plant "
+            f"(world-model fit vs exact push-forward: {d4['world_model'].get('rel_err_mean', float('nan')):.2f}).</p>")
+        o.append(_table(
+            ["quantity", "value"],
+            [["noise floor &beta; (identified diffusion)", f"{d4['beta']:.2e}"],
+             ["factor cert. frac. (d=%d of D=%d)" % (d4["d_eta"], d4["D"]),
+              _fmt(c4["factor"]["certified_fraction"])],
+             ["full cert. frac. (all D)", _fmt(c4["full"]["certified_fraction"])],
+             ["era probe: viol. frac. healthy", _fmt(era["healthy"]["viol_frac"])],
+             ["era probe: viol. frac. aged", _fmt(era["aged"]["viol_frac"])],
+             ["shadow gate: unsafe swaps (sound / naive)",
+              f"{d4['shadow']['sound']['unsafe_swaps']} / {d4['shadow']['naive']['unsafe_swaps']}"]]))
+        o.append(_fig("fig4_realtrend.svg",
+                      "Certificate-violation fraction under each identified fleet era. "
+                      "The aging drift moves the plant out of the certified envelope; "
+                      "the gate exists to catch exactly this."))
+    else:
+        o.append('<p class="muted">results/exp4_realtrend.json not present.</p>')
+
     o.append("<h2>How to reproduce</h2>")
     o.append("""<ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
 <li><code>python experiments/exp2_shadow.py</code> &mdash; reuses the <code>arm4_d2</code> checkpoint from exp1.</li>
 <li><code>python experiments/exp1_budget.py</code> &mdash; equal-quality budget ladder over the exp1 checkpoints.</li>
+<li><code>python experiments/exp4_realtrend.py</code> &mdash; real-data pipeline (expects <code>data/cmapss/CMaps/train_FD001.txt</code> from Kaggle <code>behrad3d/nasa-cmaps</code>).</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, tightness, invertibility, metric, push&#8209;forward tests.</li>
 </ul>""")

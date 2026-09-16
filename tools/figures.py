@@ -216,11 +216,45 @@ def fig_shadow():
     return True
 
 
+def fig_realtrend():
+    data = _load("exp4_realtrend.json")
+    if data is None:
+        return False
+    era = data["era"]
+    w, h, m = 560, 380, 64
+    lo_y, hi_y = 0.0, 1.0
+
+    def Y(v):
+        return (h - m) - (h - 2 * m) * (v - lo_y) / (hi_y - lo_y)
+
+    o = _svg_open(w, h, "Real aging drift: certificate violations under each fleet era")
+    o += _axes(w, h, m, "", "probe violation fraction", "")
+    o += _yticks(m, w, h, lo_y, hi_y, [0, 0.25, 0.5, 0.75, 1.0], lambda t: f"{t:.2f}")
+    bars = [("healthy era", era["healthy"]["viol_frac"], BLUE, w * 0.32),
+            ("aged era", era["aged"]["viol_frac"], ACCENT, w * 0.62)]
+    bw = w * 0.14
+    for label, v, color, cx in bars:
+        y0, y1 = Y(0), Y(max(v, 0.005))
+        o.append(f'<rect x="{cx - bw / 2:.1f}" y="{y1:.1f}" width="{bw:.1f}" '
+                 f'height="{max(y0 - y1, 1.0):.1f}" fill="{color}" opacity="0.85"/>')
+        o.append(_text(cx, y1 - 8, f"{v:.2f}", 13, color, weight="bold"))
+        o.append(_text(cx, y0 + 16, label, 12, INK))
+    shift = data["identification"]["attractor_shift"]
+    o.append(_text(w - m - 8, m + 14, f"attractor shift {shift:.2f} sd", 11.5, GREY, "end"))
+    o.append(_text(w - m - 8, m + 30,
+                   f"identified from NASA C-MAPSS FD001", 11.5, GREY, "end"))
+    o.append("</svg>")
+    with open(os.path.join(SITE, "fig4_realtrend.svg"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(o))
+    return True
+
+
 def main():
     done = []
     for fn, name in ((fig_tightness, "fig1_tightness"),
                      (fig_scaling, "fig2_scaling"),
-                     (fig_shadow, "fig3_shadow")):
+                     (fig_shadow, "fig3_shadow"),
+                     (fig_realtrend, "fig4_realtrend")):
         ok = fn()
         print(("wrote " if ok else "skipped (no data) ") + name)
         if ok:
