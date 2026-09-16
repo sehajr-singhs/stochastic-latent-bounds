@@ -1,0 +1,244 @@
+{
+  "dataset": "NASA C-MAPSS FD001 (Kaggle behrad3d/nasa-cmaps)",
+  "identification": {
+    "n_units_fit": 80,
+    "n_cycles": 16138,
+    "dA_norm": 0.40414602671259364,
+    "dsigma_norm": 0.04423525688771899,
+    "attractor_shift": 2.8229417737001685,
+    "clamp_healthy": 0.2004929502019447,
+    "clamp_aged": 0.2039011970369311,
+    "sigma_healthy": [
+      0.9974574623152336,
+      0.48828804219056254,
+      0.43290073189080225,
+      0.23973845797729892,
+      0.4769495267201132
+    ],
+    "sigma_aged": [
+      1.002540809448164,
+      0.5061929148699602,
+      0.44814422707025486,
+      0.2564769780202182,
+      0.5100824539929935
+    ],
+    "sensors": [
+      "T24",
+      "P30",
+      "phi",
+      "NRf",
+      "BPR"
+    ]
+  },
+  "alpha": 0.05,
+  "kappa": 1.0,
+  "tol": 0.05,
+  "d_eta": 2,
+  "D": 5,
+  "beta": 0.04899815464622426,
+  "params": 11878,
+  "world_model": {
+    "rel_err_mean": 11.910440469683735,
+    "rel_err_real_holdout": 13.388243787579619
+  },
+  "cert_viol_frac": 0.0,
+  "cert_max_gen": -0.04533172953681803,
+  "lam_Q": 0.6853640519464372,
+  "seconds_world_model": 70.17647218704224,
+  "seconds_certificate": 91.69214367866516,
+  "cert": {
+    "beta": 0.04899815464622426,
+    "tol": 0.05,
+    "threshold": 0.09899815464622426,
+    "factor": {
+      "certified_fraction": 0.0,
+      "nodes": 4030,
+      "seconds": 166.78500318527222,
+      "worst_upper": 69.06016579315033,
+      "fully_certified": false
+    },
+    "full": {
+      "certified_fraction": 0.0,
+      "nodes": 4030,
+      "seconds": 20.099411725997925,
+      "worst_upper": 73.20431481435008,
+      "fully_certified": false
+    }
+  },
+  "era": {
+    "healthy": {
+      "viol_frac": 0.0859375,
+      "mean_resid": null
+    },
+    "aged": {
+      "viol_frac": 0.15625,
+      "mean_resid": null
+    }
+  },
+  "shadow": {
+    "sound": {
+      "accepted": 0,
+      "rejected": 8,
+      "unsafe_swaps": 0,
+      "unsafe_swap_fraction": 0.0,
+      "fallback_rounds": 2,
+      "seconds": 813.6669507026672,
+      "rounds": [
+        {
+          "round": 0,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 2874.51575205436,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 1,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 1919.7389906416706,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 2,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 2874.4380759036762,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 3,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 1138.0583984808118,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 4,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 1142.1272089258405,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        },
+        {
+          "round": 5,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 1146.1394639858722,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        },
+        {
+          "round": 6,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 4226.596131507268,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        },
+        {
+          "round": 7,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 4226.626459450222,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        }
+      ]
+    },
+    "naive": {
+      "accepted": 8,
+      "rejected": 0,
+      "unsafe_swaps": 8,
+      "unsafe_swap_fraction": 1.0,
+      "fallback_rounds": 0,
+      "seconds": 43.88633680343628,
+      "rounds": [
+        {
+          "round": 0,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 1,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 2,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 3,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.087890625,
+          "max_resid_after": 0.9545265874571985,
+          "unsafe": true
+        },
+        {
+          "round": 4,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        },
+        {
+          "round": 5,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        },
+        {
+          "round": 6,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        },
+        {
+          "round": 7,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.193359375,
+          "max_resid_after": 1.0232764089408448,
+          "unsafe": true
+        }
+      ]
+    }
+  }
+}
