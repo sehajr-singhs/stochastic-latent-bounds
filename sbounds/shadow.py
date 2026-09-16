@@ -49,6 +49,7 @@ class ShadowConfig:
     probe: int = 512
     tol: float = 0.05            # certificate slack above the noise floor
     seed: int = 0
+    dt: float = 0.01             # physical sample time of the plant stream
 
 
 @dataclass
@@ -134,7 +135,7 @@ def shadow_run(system_initial: ChainArm, V, F, transport, kappa: float, alpha: f
         # --- fresh data from the current plant -------------------------------
         x0 = region_lo + (region_hi - region_lo) * torch.rand(
             (cfg.batch * 4, transport.dim), dtype=torch.float64, generator=g)
-        x1 = euler_maruyama(plant, x0, 1, 0.01, generator=g)
+        x1 = euler_maruyama(plant, x0, 1, cfg.dt, generator=g)
         # --- shadow trains a few steps ---------------------------------------
         Vs, Fs = _clone_pair(V, F)
         params = list(Vs.parameters()) + list(Fs.parameters())
@@ -142,7 +143,7 @@ def shadow_run(system_initial: ChainArm, V, F, transport, kappa: float, alpha: f
         for _ in range(cfg.shadow_steps):
             idx = torch.randperm(x0.shape[0], generator=g)[:cfg.batch]
             y0, y1 = transport(x0[idx]), transport(x1[idx])
-            target = (y1 - y0) / 0.01
+            target = (y1 - y0) / cfg.dt
             l_fit = ((Fs(y0) - target) ** 2).mean()
             eta = y0[..., :d_eta].clone().requires_grad_(True)
             rho = y0[..., d_eta:].clone().requires_grad_(True)

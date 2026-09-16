@@ -50,9 +50,9 @@ def worst_first_bnb(bound_fn, lo0: torch.Tensor, hi0: torch.Tensor,
     split_dims = split_dims.to(torch.long)
     total = float(box_measure(lo0, hi0).sum())
     lo0, hi0 = lo0.clone(), hi0.clone()
-    # a single start box may arrive with a leading batch dim (1, D); every box
-    # inside the search is a (D,) vector, children stack to (B, D)
-    if lo0.dim() > 1 and lo0.shape[0] == 1:
+    # a single start box may arrive with any number of leading singleton dims;
+    # every box inside the search is a (D,) vector, children stack to (B, D)
+    while lo0.dim() > 1 and lo0.shape[0] == 1:
         lo0, hi0 = lo0.squeeze(0), hi0.squeeze(0)
 
     up0 = bound_fn(lo0, hi0).reshape(-1)

@@ -159,7 +159,51 @@ probe points after the swap — so the gate's value is a falsifiable number, not
 design assertion. If the gate keeps rejecting (plant drifted out of scope), the region
 shrinks and that time is reported.
 
-## 8. What is deliberately loose
+## 9. Why the factorised verifier scales with the latent dimension (proposition)
+
+The empirical ladder (factor mode certifies at budgets full mode never reaches) is not
+an accident of the benchmark; it follows from the cascade structure that training
+enforces. Write the latent dynamics in block form, with `eta` the certified factor
+(d coordinates) and `rho` the transversal block (m = D - d):
+
+    d/dt (eta, rho) = ( F_ee(eta) + g_e(rho),  A_rr rho + h(eta) )
+
+with the *cascade constraints* `F_e in R^{d x m} = 0` (eta-rows read only eta; enforced
+hard in training) and the rho-rows reading eta only through a bounded nonlinearity.
+The per-box sound bound has the shape
+
+    sup_box (L W + alpha W)  <=  C_eta(w_eta)  +  C_couple(w_eta, rho_ball)  +  kappa*lam_Q*(s^2 - 2 s b_Q)
+
+where `w_eta` is the eta-box half-width, `b_Q` bounds the rho-row coupling over the
+box, and `s` is the completing-the-square slack. Two properties close the argument:
+
+1. **Only d coordinates are subdivided.** In factor mode the search refines `w_eta`
+   while the rho block is handled in closed form over its ball. The `C_couple` term is
+   evaluated through the eta-box (the rho-rows read eta), so every term decreases as
+   the eta subdivision refines: `C_eta = O(w_eta^2)` (centered-form second-order term
+   with fixed quadratic V, whose Hessian has zero interval width) and
+   `C_couple = O(L_h w_eta)` with `L_h` the (spectrally capped) Lipschitz constant of
+   the eta-forcing. Hence the bound crosses the threshold `beta + tol` at a critical
+   width `w*` that depends on d, kappa, lam_Q, and the caps -- but **not on D**.
+2. **Cell count is exponential in the number of subdivided coordinates.** A uniform
+   refinement to width `w*` needs `(scale/w*)^d` cells in factor mode and
+   `(scale/w*)^D` in full mode. With the per-cell cost identical (same bound family,
+   same Rho rings), the effort ratio at equal threshold is
+
+        effort(full) / effort(factor)  =  (scale/w*)^{D - d}.
+
+This is the d-vs-D separation: at fixed soundness (same bound, same threshold, same
+region semantics), the certification effort is governed by the latent dimension d of
+the certified factor, while the full-dimensional verifier pays `(D - d)` additional
+exponential factors. The measured ladder is this proposition with real constants:
+full mode's `w*` under its budget is orders of magnitude above the threshold crossing
+(`worst_upper ~ 10^6` at D = 8 vs threshold ~ 0.05), and the gap widens with D because
+the *constant* in the full-mode bound also grows (the coupling norms and Hessian
+terms accumulate over all D coordinates). The proposition is conservative -- it
+treats b_Q, L_h as fixed -- so it lower-bounds the true advantage of the factorised
+verifier as D grows.
+
+## 10. What is deliberately loose
 
 - The interval Jacobian chain rule composes interval matrices without exploiting
   correlations — sound, not minimal.

@@ -81,6 +81,11 @@ def sigma_frobenius_bound(system, x_lo: torch.Tensor, x_hi: torch.Tensor) -> tor
     B = x_lo.shape[0]
     if system.noise == "additive":
         return torch.full((B,), float(system.sigma) * (n ** 0.5), dtype=x_lo.dtype)
+    if system.noise == "diagonal":
+        # per-coordinate constant diffusion Sigma = diag(sigma_vec): the Frobenius
+        # norm is exactly ||sigma_vec||_2, no enclosure needed.
+        s2 = sum(float(s) ** 2 for s in system.sigma_vec)
+        return torch.full((B,), s2 ** 0.5, dtype=x_lo.dtype)
     if system.noise == "state_dependent":
         absmax = torch.maximum(x_lo[..., n:].abs(), x_hi[..., n:].abs())
         return float(system.sigma) * ((1.0 + absmax) ** 2).sum(-1).sqrt()
@@ -111,6 +116,13 @@ def sigma_interval(system, x_lo: torch.Tensor, x_hi: torch.Tensor) -> Iv:
         top = torch.zeros(B, n, n, dtype=x_lo.dtype)
         eye = s * torch.eye(n, dtype=x_lo.dtype).expand(B, n, n).contiguous()
         return Iv(torch.cat([top, eye], dim=-2), torch.cat([top, eye], dim=-2))
+    if system.noise == "diagonal":
+        # constant diagonal diffusion: the interval is a point, exactly sound.
+        sv = system.sigma_vec.to(dtype=x_lo.dtype)
+        D = sv.shape[0]
+        B = x_lo.shape[0]
+        m = torch.diag_embed(sv).expand(B, D, D).contiguous()
+        return Iv(m, m.clone())
     if system.noise == "state_dependent":
         n = system.n_links
         lo_a = torch.minimum(x_lo[..., n:].abs(), x_hi[..., n:].abs())

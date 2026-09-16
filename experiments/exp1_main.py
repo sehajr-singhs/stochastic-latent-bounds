@@ -110,7 +110,8 @@ def build_and_train(n_links: int, d_eta: int, sigma: float, alpha: float,
 
 
 def certify_both(trained: dict, node_budget: int, time_budget: float,
-                 chunk: int = 96) -> dict:
+                 chunk: int = 96, alpha: float | None = None,
+                 tol: float | None = None) -> dict:
     """Certify the same region in factor mode (d coords) and full mode (D coords).
 
     The threshold is the noise floor beta = L W(0) plus the explicit slack tol:
@@ -123,9 +124,11 @@ def certify_both(trained: dict, node_budget: int, time_budget: float,
 
     V, F = trained["V"], trained["F"]
     transport, system = trained["transport"], trained["system"]
-    region, d, alpha, kappa = trained["region"], trained["d_eta"], ALPHA, KAPPA
+    region, d = trained["region"], trained["d_eta"]
+    alpha = ALPHA if alpha is None else alpha
+    kappa = KAPPA
     beta = noise_floor(V, F, transport, system, kappa, d)
-    tol = TOL
+    tol = TOL if tol is None else tol
     out = {"beta": beta, "tol": tol, "threshold": beta + tol}
     for mode in ("factor", "full"):
         lo, hi = region.init_box(mode)
