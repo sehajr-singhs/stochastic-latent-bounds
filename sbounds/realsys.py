@@ -201,6 +201,64 @@ def load_cmapss_fd001(data_dir: str | None = None,
     return out
 
 
+ETT_COLS = ["HUFL", "HULL", "MUFL", "MULL", "LUFL", "LULL", "OT"]
+
+
+def load_ettm2(data_dir: str | None = None, holdout: float = 0.2) -> dict:
+    """Electricity-transformer temperature (ETTm2): real grid physics.
+
+    Seven channels (6 load levels + oil temperature OT) sampled every 15 min.
+    Same identification contract as the fleet loader: z-scored channels, an OU
+    fit on within-segment first differences (one segment = consecutive rows of
+    the same day inside the same load regime), and a *real* regime shift --
+    the high-load era (hours 08-20) vs the low-load era (hours 21-07) -- which
+    plays the role the aging drift plays for the fleet.
+
+    The last `holdout` fraction of the timeline is returned separately as
+    X_hold/unit_hold for real held-out world-model scoring.
+    """
+    import csv
+
+    here = os.path.dirname(os.path.abspath(__file__))
+    default = os.path.join(os.path.dirname(here), "data", "ett", "ETTm2.csv")
+    rows = []
+    with open(data_dir or default, encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            rows.append(row)
+    if not rows:
+        raise ValueError("empty ETTm2 csv")
+
+    date_key = next(k for k in rows[0] if k.lower().startswith("date"))
+    ot_key = next(k for k in rows[0] if k.strip() == "OT" or k.strip().lower() == "ot")
+    cols = [c for c in rows[0] if c not in (date_key,)]
+    # keep the canonical 7 channels; map OT case-insensitively
+    def _val(row, name):
+        if name == "OT":
+            return float(row[ot_key])
+        return float(row[name])
+
+    X = torch.tensor([[_val(r, c) for c in ETT_COLS] for r in rows], dtype=torch.float64)
+    if not torch.isfinite(X).all():
+        raise ValueError("non-finite values in ETTm2")
+    n_hold = int(X.shape[0] * holdout)
+    Xtr, Xhold = X[:-n_hold], X[-n_hold:]
+    mu, sd = Xtr.mean(0), Xtr.std(0).clamp_min(1e-9)
+    Xz = (X - mu) / sd
+
+    # era mask by hour-of-day from the date field ("2016-07-01 00:15:00")
+    hours = torch.tensor([int(r[date_key][11:13]) for r in rows], dtype=torch.int64)
+    hi_load = (hours >= 8) & (hours < 20)
+    # segment ids: (day, era) so first differences never cross a regime boundary
+    days = torch.tensor([int(r[date_key][8:10]) + 31 * int(r[date_key][5:7])
+                         + 372 * int(r[date_key][:4]) for r in rows], dtype=torch.int64)
+    seg = days * 2 + hi_load.to(torch.int64)
+
+    return {"X": Xz, "unit": seg, "X_hold": (Xhold - mu) / sd,
+            "unit_hold": seg[-n_hold:], "cols": list(ETT_COLS),
+            "era_hi": hi_load, "era_lo": ~hi_load,
+            "stats": {"mu": mu.tolist(), "sd": sd.tolist()}}
+
+
 def era_systems(data: dict) -> tuple[SensorSystem, SensorSystem]:
     """Fit the healthy (early-life) and aged (late-life) era systems."""
     sys_healthy = SensorSystem.fit(data["X"][data["era_lo"] == 1.0],
