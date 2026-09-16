@@ -87,13 +87,18 @@ unit-tested.
 ```bash
 pip install torch pytest
 
-# soundness + tightness suite (CPU, float64)
+# soundness + rigor suite (CPU, float64)
 python -m pytest tests/ -q
 
 # experiments (checkpointed; re-runs skip finished stages)
 python experiments/exp1_main.py          # factor vs full certified-volume scaling
 python experiments/exp2_shadow.py        # gated hot-swap under plant drift
 python experiments/exp3_tightness.py     # tight trace vs Cauchy-Schwarz
+python experiments/exp4_realtrend.py     # real fleet data (NASA C-MAPSS)
+python experiments/exp5_airquality.py    # real environmental data (Beijing PRSA)
+python experiments/exp6_grid.py          # real grid physics (ETTm2)
+python experiments/exp7_baselines.py     # PCA / random-projection transport baselines
+python experiments/exp8_validation.py    # identification stability, bootstrap CIs, ablations
 
 # figures + results page (pure Python, no matplotlib)
 python tools/figures.py
@@ -102,6 +107,26 @@ python tools/site.py
 
 All heavy runs were executed on a dedicated Linux box (8 cores, CPU torch, float64);
 `results/*.json` are committed next to the code that produced them.
+
+### Real-data protocol (what makes it rigorous)
+
+- **Three physical domains, one pipeline**: turbofan fleet degradation (NASA
+  C-MAPSS FD001), urban air quality with municipal heating-season drift
+  (Beijing PRSA), and electricity-transformer load regimes (ETTm2). No
+  domain-specific code beyond the CSV loaders.
+- **Identification is validated, not assumed**: fit/holdout parameter agreement
+  (exp8 stage A) shows the measured era-drift signals clear the identification
+  noise floor by an order of magnitude (fleet: 0.40 vs 0.021).
+- **World models are aligned to the verifier, collusion-free**: after the joint
+  (transport + dynamics) fit, F is refit on the plant's exact Ito push-forward
+  with the transport frozen (`refit_steps` in `TrainConfig`). Co-training on
+  push-forward targets lets the transport inflate its own Jacobian — the frozen
+  variant cannot.
+- **Statistics, not point estimates**: percentile-bootstrap CIs over 2048 fixed
+  probes (2000 resamples), sensitivity ablations (κ, diffusion scale, region
+  scale), and 3-seed certificate stability (exp8).
+- **16 tests** cover soundness, tightness, invertibility, the real-data loaders,
+  the linear-baseline's exact interval arithmetic, and the bootstrap statistics.
 
 ## Repo layout
 
@@ -118,8 +143,9 @@ sbounds/            the framework
   train.py          data gen, world-model training, certificate training
   cegis.py          counterexample search: genuine violations vs bound looseness
   shadow.py         dual-buffer hot-swap behind a certified gate
-experiments/        exp1 scaling, exp2 shadow, exp3 tightness (checkpointed)
-tests/              soundness / tightness / invertibility / metric tests
+experiments/        exp1 scaling, exp2 shadow, exp3 tightness, exp4-6 real data
+                    (C-MAPSS / PRSA / ETTm2), exp7 baselines, exp8 validation
+tests/              soundness / rigor / loader / bootstrap-statistics tests
 tools/              figure + site generators (pure Python SVG)
 docs/               GitHub Pages site (e3nn-style minimal look)
 results/            committed JSON outputs of every experiment
