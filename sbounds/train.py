@@ -101,6 +101,11 @@ class TrainConfig:
                                      # (per-batch, recomputed as T moves) instead of
                                      # raw single-step differences -- the right target
                                      # when real data's per-step signal is noise-dominated
+    refit_steps: int = 0             # after the joint phase: this many push-forward
+                                     # steps with the transport FROZEN. This is the
+                                     # collusion-free way to align F with the verifier:
+                                     # co-training on push-forward targets lets T inflate
+                                     # its own Jacobian (beta pays), a frozen T cannot.
 
 
 def train_world_model(transport, F: LatentDynamics, data: RolloutData, d_eta: int,
@@ -196,6 +201,48 @@ def train_world_model(transport, F: LatentDynamics, data: RolloutData, d_eta: in
         # push-forward target the linear part is already aligned to the plant
         # by the fit term itself, and the refit would re-inject the noise
         refit_linear_part(F, transport, data, d_eta)
+    if cfg.refit_steps > 0:
+        # Two-stage verifier alignment: with T FROZEN, refit F on the plant's
+        # exact Ito push-forward under T. Co-training on push-forward targets
+        # lets T inflate its own Jacobian to soften its own targets (beta pays);
+        # a frozen T cannot collude. F's linear part is refit on the same exact
+        # target, so no noise is re-injected here either.
+        from sbounds.systems import pushforward_drift as _pf
+        for p in transport.parameters():
+            p.requires_grad_(False)
+        gen2 = torch.Generator().manual_seed(cfg.seed + 21)
+        step = 0
+        while step < cfg.refit_steps:
+            for x0, _x1 in data.batches(cfg.batch, gen2):
+                if step >= cfg.refit_steps:
+                    break
+                y0 = transport(x0)
+                with torch.no_grad():
+                    tgt = _pf(data.system, transport, x0)
+                l_fit = ((F(y0) - tgt) ** 2).mean()
+                _, A_er, _, A_rr = F.blocks(d_eta)
+                l_dec = (A_er ** 2).sum()
+                zero_b = torch.zeros_like(y0)
+                g_rho = F.residual_rho(y0, zero_b, d_eta)
+                l_gres = (g_rho ** 2).mean()
+                lam = torch.linalg.eigvalsh(0.5 * (A_rr + A_rr.T)).max()
+                l_con = torch.nn.functional.softplus(lam + cfg.contract_target)
+                loss = (l_fit + cfg.w_decouple * l_dec + cfg.w_gres * l_gres
+                        + cfg.w_contract * l_con)
+                opt.zero_grad()
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(list(F.parameters()), 5.0)
+                opt.step()
+                for m in F.modules():
+                    if isinstance(m, torch.nn.Linear):
+                        spectral_project(m, cfg.rho_spec_cap)
+                if cfg.metric_every and step % cfg.metric_every == 0:
+                    F.refresh_rho_metric(d_eta)
+                step += 1
+                if verbose and step % cfg.log_every == 0:
+                    print(f"  [pf-refit] step {step:5d} fit {float(l_fit):.3e} "
+                          f"lam_rho {float(lam):+.3f}")
+        hist["pf_refit_fit"] = float(l_fit.detach())
     hist["final_lam_rho"] = float(F.rho_contraction_rate(d_eta))
     hist.update(F.refresh_rho_metric(d_eta))
     return hist

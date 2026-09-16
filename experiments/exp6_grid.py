@@ -94,7 +94,7 @@ def main() -> None:
                                     TrainConfig(steps=wm_steps, seed=0,
                                                 w_contract=0.3, d_eta=D_ETA,
                                                 rho_spec_cap=1.0,
-                                                target_pushforward=True))
+                                                refit_steps=wm_steps // 2))
         t_wm = time.time() - t0
 
         xr = (2.0 * torch.rand((2048, D), dtype=torch.float64,

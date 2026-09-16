@@ -203,7 +203,7 @@ def run_variant(kind: str, system, D: int, wm_steps: int, cert_steps: int,
     train_world_model(transport, F, data, D_ETA,
                       TrainConfig(steps=wm_steps, seed=0, w_contract=0.3,
                                   d_eta=D_ETA, rho_spec_cap=1.0,
-                                  target_pushforward=True))
+                                  refit_steps=wm_steps // 2))
     region = _build_region(transport, system, D)
 
     V = LyapunovNet(D_ETA, use_residual=False, p_scale=1.0, seed=0)
