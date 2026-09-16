@@ -30,6 +30,16 @@ SENSOR_COLS = [2, 3, 4, 8, 9, 15, 13, 12]  # 1-indexed within the 3+21 block
 SENSOR_NAMES = ["T24", "T30", "T50", "P30", "Ps30", "phi", "NRf", "BPR"]
 
 
+def _name_of(sensor_col: int) -> str:
+    """C-MAPSS schema name of a 1-indexed sensor column, or s<col> if unknown."""
+    _schema = {2: "T24", 3: "T30", 4: "T50", 8: "P30", 9: "Ps30",
+               15: "phi", 13: "NRf", 12: "BPR", 11: "NRc", 17: "P15",
+               7: "T48", 5: "P2", 6: "T2", 16: "epr", 10: "mf",
+               18: "egThd", 19: "egTdm", 20: "P40", 21: "P50", 22: "ps30",
+               23: "nf", 24: "Nc", 25: "SmP30", 26: "SmP40"}
+    return _schema.get(sensor_col, f"s{sensor_col}")
+
+
 def _hurwitz_project(A: torch.Tensor, margin: float = 0.02, rho_max: float = 0.8) -> tuple[torch.Tensor, float]:
     """Project eigenvalues into the stable disk {Re <= -margin, |lambda| <= rho_max}.
 
@@ -161,14 +171,23 @@ def load_cmapss_fd001(data_dir: str | None = None,
     unit = torch.tensor(units, dtype=torch.long)
     fit_mask = unit <= fit_units
     Xfit = X[fit_mask]
+    # Drop near-constant channels: in FD001 (single operating condition) some
+    # sensors never move. They carry no dynamics, make the least-squares design
+    # rank-deficient (non-deterministic pseudo-inverse across LAPACK builds),
+    # and would only add dead coordinates to the state.
+    raw_sd = Xfit.std(dim=0)
+    keep = raw_sd > 1e-3
+    dropped = [_name_of(s) for s, k in zip(sensors, keep.tolist()) if not k]
+    sensors = [s for s, k in zip(sensors, keep.tolist()) if k]
+    X = X[:, keep]
+    Xfit = Xfit[:, keep]
     mu = Xfit.mean(dim=0)
     sd = Xfit.std(dim=0).clamp_min(1e-9)
     Xz = (X - mu) / sd
     out = {"X": Xz[fit_mask], "unit": unit[fit_mask],
            "X_hold": Xz[~fit_mask], "unit_hold": unit[~fit_mask],
-           "mu": mu, "sd": sd,
-           "sensors": sensors, "names": [SENSOR_NAMES[s - 1] if s - 1 < len(SENSOR_NAMES)
-                                         else f"s{s}" for s in sensors]}
+           "mu": mu, "sd": sd, "dropped_channels": dropped,
+           "sensors": sensors, "names": [_name_of(s) for s in sensors]}
     # era split per unit: first half of life vs second half (real aging drift)
     era_lo = torch.zeros_like(out["unit"], dtype=torch.float64)
     era_hi = torch.zeros_like(out["unit"], dtype=torch.float64)
