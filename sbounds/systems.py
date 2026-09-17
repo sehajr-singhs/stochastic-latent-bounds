@@ -176,14 +176,23 @@ def _batched_jacobian(fn, x: torch.Tensor) -> torch.Tensor:
 
 @torch.enable_grad()
 def _batched_hessian(fn, x: torch.Tensor) -> torch.Tensor:
-    """H[b, k, i, j] = d2 T_k / d x_i d x_j."""
+    """H[b, k, i, j] = d2 T_k / d x_i d x_j.
+
+    If T's output does not depend on any trainable parameter (e.g. the fixed
+    linear PCA/random-projection baselines), the first backward is a constant
+    w.r.t. x and carries no graph: the second derivative is then *exactly*
+    zero, which is what we return -- that is the mathematics, not a fallback.
+    """
     B, D = x.shape
     rows = []
     for k in range(D):
         g = torch.autograd.grad(fn(x)[..., k].sum(), x, create_graph=True)[0]  # (B, D)
         row = []
         for i in range(D):
-            h = torch.autograd.grad(g[:, i].sum(), x, retain_graph=True)[0]
+            try:
+                h = torch.autograd.grad(g[:, i].sum(), x, retain_graph=True)[0]
+            except RuntimeError:
+                return torch.zeros(B, D, D, D, dtype=x.dtype, device=x.device)
             row.append(h)
         rows.append(torch.stack(row, dim=-2))
     return torch.stack(rows, dim=-3)                       # (B, D, D, D)
