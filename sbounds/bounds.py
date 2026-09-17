@@ -439,16 +439,19 @@ def bound_factor(V, F, transport, system, kappa: float, alpha: float, d_eta: int
     # step of the rho bound uses. Certifying with a fallback metric would
     # therefore be unsound, so this bound refuses: +inf means "no certificate
     # available for this model", which is a result and not a crash.
+    eta_lo, eta_hi = torch.atleast_2d(eta_lo), torch.atleast_2d(eta_hi)
     A_rr = F.A.detach()[d_eta:, d_eta:]
     resid = (A_rr.T @ Q + Q @ A_rr + torch.eye(Q.shape[0], dtype=Q.dtype)).abs().max()
     if float(resid) > 1e-6:
-        inf = torch.full((4,), float("inf"), dtype=Q.dtype)
+        # No valid certificate for this (A_rr, Q) pair: +inf for every input box
+        # means "nothing certifies", which is a result and not a crash. The
+        # count must match the batch -- BnB consumes one bound per box.
+        inf = torch.full((eta_lo.shape[0],), float("inf"), dtype=Q.dtype)
         return BoundResult(inf, inf.clone(), inf.clone(), inf.clone(), inf.clone(),
                            inf.clone(), inf.clone())
     lam_Q = float(torch.linalg.eigvalsh(Q).max())
     m = transport.dim - d_eta
     r = float(rho_radius)
-    eta_lo, eta_hi = torch.atleast_2d(eta_lo), torch.atleast_2d(eta_hi)
     B = eta_lo.shape[0]
     ups, d_etas, d_rhos, w_ups, itos, sigs, jts = [], [], [], [], [], [], []
     for s in range(0, B, chunk):

@@ -243,6 +243,12 @@ def train_world_model(transport, F: LatentDynamics, data: RolloutData, d_eta: in
                     print(f"  [pf-refit] step {step:5d} fit {float(l_fit):.3e} "
                           f"lam_rho {float(lam):+.3f}")
         hist["pf_refit_fit"] = float(l_fit.detach())
+        # Re-solve the rho metric from the FINAL A_rr: the certificate's sound
+        # bound assumes the Lyapunov identity A_rr^T Q + Q A_rr = -I. Leaving Q
+        # stale (up to metric_every steps) after the refit moved A_rr makes
+        # bound_factor (correctly) refuse to certify -- with +inf for every box.
+        hist.update(F.refresh_rho_metric(d_eta))
+        hist["final_lam_rho"] = float(F.rho_contraction_rate(d_eta))
     hist["final_lam_rho"] = float(F.rho_contraction_rate(d_eta))
     hist.update(F.refresh_rho_metric(d_eta))
     return hist
