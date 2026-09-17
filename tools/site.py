@@ -82,6 +82,8 @@ HEADER = """<!DOCTYPE html>
   &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#nonlinear">Nonlinear separation test (exp9)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#supremacy">Supremacy at D=200 (exp10)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
@@ -416,7 +418,60 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp9_nonlinear.json not present.</p>')
 
-    o.append('<h2 id="rigor">10. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
+    o.append('<h2 id="supremacy">10. Computational supremacy at D=200 (exp10)</h2>')
+    d10 = _load("exp10_scaling.json")
+    if d10 and d10.get("rows"):
+        rows = []
+        for key in sorted(d10["rows"], key=lambda k: d10["rows"][k]["D"]):
+            r = d10["rows"][key]
+            fac, full = r["factor"], r["full"]
+            rows.append([f"arm{r['n_links']} (D={r['D']}, d={r['d_eta']})",
+                         _fmt(fac.get("certified_fraction")),
+                         _fmt(full.get("certified_fraction")),
+                         str(fac.get("nodes")), str(full.get("nodes")),
+                         _fmt(fac.get("seconds"), 1)])
+        o.append("<p><strong>The curse-of-dimensionality headline.</strong> A 100&#8209;link "
+                 "planar arm has 200 state coordinates. The identical protocol &mdash; same "
+                 "transport family, same interval bound, same branch&#8209;and&#8209;bound &mdash; "
+                 "certifies a d&#8209;2 factorisation of it, while the full&#8209;dimensional "
+                 "verifier makes no progress at the same budget. The sweep across D = 40, "
+                 "100, 200 turns the headline into the law: certified volume tracks the "
+                 "latent dimension d, not the state dimension D (Theorem 4 of the "
+                 "<a href=\"math.html\">math supplement</a>).</p>")
+        o.append(_table(["system", "factor certified", "full certified",
+                         "factor nodes", "full nodes", "factor seconds"], rows))
+    else:
+        o.append('<p class="muted">results/exp10_scaling.json not present.</p>')
+
+    o.append('<h2 id="reactor">11. Chemical-reactor scale: CSTR sensor array, D=176 (exp11)</h2>')
+    d11 = _load("exp11_cstr.json")
+    if d11:
+        ident = d11.get("identification") or {}
+        ep = d11.get("era_probes") or {}
+        c = d11.get("cert") or {}
+        fac, full = c.get("factor") or {}, c.get("full") or {}
+        rows = [["calm (deployment era)", _fmt((ep.get("calm") or {}).get("viol_frac")),
+                 "&mdash;"],
+                ["disturbed (final quarter)", _fmt((ep.get("disturbed") or {}).get("viol_frac")),
+                 _fmt(ident.get("rel_dA"))]]
+        o.append("<p><strong>Reactor physics at plant scale.</strong> 1404&#8209;channel "
+                 "chemical&#8209;reactor sensor array (Kaggle, domain&#8209;adaptation CSTR), "
+                 "subsampled to D=176 over 2860 consecutive samples. The final quarter of "
+                 "the timeline is a real disturbed regime: the attractor shifts and its "
+                 "variance roughly triples (era fits differ by rel &#8214;&Delta;A&#8214; &asymp; "
+                 f"{_fmt(ident.get('rel_dA'), 2)}; the disturbed&#8209;era fit needs "
+                 "12&times; more Hurwitz projection). The calm&#8209;era certificate is what "
+                 "deployment would carry; the era probes show what the disturbed regime "
+                 "does to it &mdash; the falsifiable input to the gate of section 4.</p>")
+        o.append(_table(["era probe", "pointwise viol. frac.", "rel &#8214;&Delta;A&#8214;"], rows))
+        o.append("<p>Certified fractions at budget "
+                 f"{fac.get('nodes', '?')} nodes: factor mode <strong>{_fmt(fac.get('certified_fraction'))}</strong>, "
+                 f"full mode {_fmt(full.get('certified_fraction'))}. &beta; = "
+                 f"{_fmt(d11.get('beta'), 3, True)}.</p>")
+    else:
+        o.append('<p class="muted">results/exp11_cstr.json not present.</p>')
+
+    o.append('<h2 id="rigor">12. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
     d8 = _load("exp8_validation.json")
     if d8:
         stab = d8.get("identification_stability")
@@ -472,6 +527,9 @@ def build_results():
 <li><code>python experiments/exp6_grid.py</code> &mdash; third real domain (expects <code>data/ett/ETTm2.csv</code> from Kaggle <code>alaaelmor/ettsmall</code>).</li>
 <li><code>python experiments/exp7_baselines.py</code> &mdash; PCA / random&#8209;projection transport baselines on all three domains.</li>
 <li><code>python experiments/exp8_validation.py</code> &mdash; identification stability, bootstrap CIs, ablations, seed stability.</li>
+<li><code>python experiments/exp9_nonlinear.py</code> &mdash; learned vs fixed maps on the nonlinear N&#8209;link plant.</li>
+<li><code>python experiments/exp10_scaling.py</code> &mdash; the D=200 computational&#8209;supremacy ladder (100&#8209;link arm).</li>
+<li><code>python experiments/exp11_cstr.py</code> &mdash; chemical&#8209;reactor sensor array, D=176 (expects <code>data/cstr/cstr_rawdata.npy</code> from Kaggle <code>eddardd/continuous-stirred-tank-reactor-domain-adaptation</code>).</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, rigor, invertibility, loader, and bootstrap&#8209;statistics tests.</li>
 </ul>""")

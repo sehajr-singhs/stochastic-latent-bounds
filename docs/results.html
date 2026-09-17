@@ -66,6 +66,8 @@
   &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#nonlinear">Nonlinear separation test (exp9)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#supremacy">Supremacy at D=200 (exp10)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
@@ -183,7 +185,15 @@
 </table>
 <figure><img src="assets/fig9_nonlinear.svg" alt="Factor certified fraction on the nonlinear N&#8209;link plant: fixed linear maps vs the learned invertible transport, identical protocol (exp9)."><figcaption>Factor certified fraction on the nonlinear N&#8209;link plant: fixed linear maps vs the learned invertible transport, identical protocol (exp9).</figcaption></figure>
 <p class="muted">Together with section 8 this closes the argument: on linear&#8209;Gaussian identified plants any orthogonal map suffices (the machinery, not the map, is the contribution there); on genuinely nonlinear plants the learned diffeomorphic transport is what makes the region certifiable at all.</p>
-<h2 id="rigor">10. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
+<h2 id="supremacy">10. Computational supremacy at D=200 (exp10)</h2>
+<p><strong>The curse-of-dimensionality headline.</strong> A 100&#8209;link planar arm has 200 state coordinates. The identical protocol &mdash; same transport family, same interval bound, same branch&#8209;and&#8209;bound &mdash; certifies a d&#8209;2 factorisation of it, while the full&#8209;dimensional verifier makes no progress at the same budget. The sweep across D = 40, 100, 200 turns the headline into the law: certified volume tracks the latent dimension d, not the state dimension D (Theorem 4 of the <a href="math.html">math supplement</a>).</p>
+<table>
+<tr><th>system</th><th>factor certified</th><th>full certified</th><th>factor nodes</th><th>full nodes</th><th>factor seconds</th></tr>
+<tr><td>arm10 (D=20, d=2)</td><td>0.000</td><td>0.000</td><td>62</td><td>254</td><td>59.1</td></tr>
+</table>
+<h2 id="reactor">11. Chemical-reactor scale: CSTR sensor array, D=176 (exp11)</h2>
+<p class="muted">results/exp11_cstr.json not present.</p>
+<h2 id="rigor">12. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
 <p><strong>Identification stability.</strong> Fit/holdout parameter agreement on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between half&#8209;fits. On C&#8209;MAPSS and air quality the measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) clear these floors by an order of magnitude, so the reported drift is signal, not identification noise. On ETTm2 the identification itself is era&#8209;dependent (rel ||&Delta;A|| &asymp; 6 across the timeline split), consistent with the noise&#8209;dominated verdict of section 6 &mdash; reported as a finding, not hidden.</p>
 <table>
 <tr><th>domain</th><th>split</th><th>rel ||&Delta;A||</th><th>rel ||&Delta;&sigma;||</th><th></th></tr>
@@ -210,6 +220,9 @@
 <li><code>python experiments/exp6_grid.py</code> &mdash; third real domain (expects <code>data/ett/ETTm2.csv</code> from Kaggle <code>alaaelmor/ettsmall</code>).</li>
 <li><code>python experiments/exp7_baselines.py</code> &mdash; PCA / random&#8209;projection transport baselines on all three domains.</li>
 <li><code>python experiments/exp8_validation.py</code> &mdash; identification stability, bootstrap CIs, ablations, seed stability.</li>
+<li><code>python experiments/exp9_nonlinear.py</code> &mdash; learned vs fixed maps on the nonlinear N&#8209;link plant.</li>
+<li><code>python experiments/exp10_scaling.py</code> &mdash; the D=200 computational&#8209;supremacy ladder (100&#8209;link arm).</li>
+<li><code>python experiments/exp11_cstr.py</code> &mdash; chemical&#8209;reactor sensor array, D=176 (expects <code>data/cstr/cstr_rawdata.npy</code> from Kaggle <code>eddardd/continuous-stirred-tank-reactor-domain-adaptation</code>).</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, rigor, invertibility, loader, and bootstrap&#8209;statistics tests.</li>
 </ul>

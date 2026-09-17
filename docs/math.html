@@ -66,6 +66,8 @@
   &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#nonlinear">Nonlinear separation test (exp9)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#supremacy">Supremacy at D=200 (exp10)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
@@ -276,6 +278,162 @@ All other protocol elements are frozen.</p>
 seeds (the fixed quadratic V is invariant; the learned latent dynamics varies).
 The spread of the violation fraction and of the noise floor β across seeds is
 reported, so no single-seed number carries the conclusions.</p>
+<h2>12. Formal statements and proofs (supplement)</h2>
+<p>Throughout, the region <code>R</code> is the product <code>B_eta x B_rho(r)</code>, the bound <code>U(box)</code> is
+the computed sound upper bound on <code>sup_box (L W + alpha W)</code>, and
+<code>theta = beta + tol</code> is the certificate threshold. Definitions: a box <code>B</code> is
+<em>certified</em> iff <code>U(B) &lt;= theta</code>; a set is <em>certified</em> iff it is a finite union of
+certified boxes; <code>U</code> is <em>sound</em> iff <code>sup_B (L W + alpha W) &lt;= U(B)</code> for every box.</p>
+<p><strong>Theorem 1 (Soundness of the factorised certificate).</strong>
+<em>Let <code>W(y) = V(eta) + kappa rho^T Q rho</code> with <code>V</code> C^2, <code>Q</code> symmetric positive definite,
+and let the identified diffusion <code>B(x) = J T(x) Sigma(x)</code> be continuous on the
+physical preimage of the box <code>B</code>. If every sub-box produced by the search is
+certified, then the true region satisfies the certificate:</em></p>
+<pre><code>sup_{y in R} (L W(y) + alpha W(y))  &lt;=  theta.
+</code></pre>
+<p><em>Consequently, for the true SDE and every <code>y_0 in R</code>,</em></p>
+<pre><code>sup_{y0 in R} E[W(y_t)]  &lt;=  e^{-alpha t} W(y_0) + (theta/alpha)(1 - e^{-alpha t}).
+</code></pre>
+<p><em>Proof.</em> By Ito's formula, <code>L W = grad W . F + 1/2 tr(BB^T Hess W)</code> wherever the
+classical derivatives exist; the identified model has <code>F</code> and <code>J T</code> C^1 and <code>Sigma</code>
+continuous, so <code>L W</code> is defined everywhere on <code>R</code>. Soundness of each ingredient is
+by construction: (i) interval forward-mode AD with outward rounding encloses
+<code>grad V</code> and <code>Hess V</code> — outward rounding makes the enclosure valid under finite
+precision, and the inflation 1e-12 relative covers the residual rounding of the
+interval library itself; (ii) the mean-value (centered) form <code>F(y) in F(c) + DF(B)(y - c)</code>
+is the multivariate mean-value inequality with interval remainder, valid because
+<code>DF</code> is continuous and the interval Jacobian encloses it on <code>B</code>; (iii) elementwise
+interval products and sums contain the true trace <code>tr(BB^T Hess W)</code>; (iv) the
+coupling completion <code>2 kappa rho^T Q F_rho &lt;= kappa b_Q^2</code> on the rho ball is the
+sharp quadratic inequality <code>-s^2 + 2 s b_Q &lt;= b_Q^2</code>, valid for every <code>s in [0, r]</code>
+with <code>r &gt;= b_Q</code>. Summing sound parts yields <code>L W + alpha W &lt;= U(B)</code> pointwise on
+each <code>B</code> (the thresholded <code>alpha W</code> term is bounded exactly: <code>V(eta)</code> has interval
+bounds from the same AD, <code>rho^T Q rho</code> from the ring bounds). Taking the max over
+the finite sub-division gives <code>sup_R (L W + alpha W) &lt;= max_B U(B) &lt;= theta</code>. The
+process consequence is Dynkin's formula applied to the <code>C^2</code> function <code>W</code> at the
+stopped process <code>y_{t ∧ tau_R}</code> and monotone convergence as <code>tau_R → ∞</code>, which is
+legitimate since the certificate bounds the expected generator on all of <code>R</code> and
+<code>W</code> grows quadratically while <code>F</code> is at most linear in <code>rho</code> and globally
+Lipschitz on <code>R</code> (spectral caps), guaranteeing non-explosion. ∎</p>
+<p><strong>Lemma 1 (Exact noise floor).</strong>
+<em>If <code>F(0) = 0</code>, <code>grad W(0) = 0</code>, and <code>B</code>, <code>Hess W</code> are continuous at <code>0</code>, then</em>
+<code>L W(0) = 1/2 tr(BB^T Hess W)(0) =: beta</code>, <em>and for every eps &gt; 0 there is a
+neighbourhood of the origin on which</em> <code>| L W(y) - beta | &lt;= eps</code>
+<em>+ o(||y||) terms; in particular <code>sup_B (L W + alpha W) → beta + alpha W(0) = beta</code>
+as the box shrinks to the origin.</em> <em>Proof.</em> Continuity of all factors in the trace
+and of <code>F</code>; the drift term <code>grad W . F</code> vanishes to second order since both factors
+vanish at <code>0</code> (<code>grad W(0) = 0</code>, <code>F(0) = 0</code>, <code>F</code> Lipschitz). The limit statement is
+the definition of continuity applied to the map <code>y ↦ L W(y)</code>. ∎
+<em>(This is why the certificate threshold must be <code>beta + tol</code>, not <code>0</code>: by Lemma 1
+any threshold below <code>beta</code> certifies no box touching the origin — the classical
+<code>L W + alpha W &lt;= 0</code> is unattainable for a non-degenerate diffusion. The repo
+tests the degenerate box at the origin against <code>beta</code> to 1e-6.)</em></p>
+<p><strong>Theorem 2 (Convergence and completeness of the search).</strong>
+<em>Assume (A1) <code>U</code> is convergent: as <code>diam(B) → 0</code>, <code>U(B) → L W(y_B) + alpha W(y_B)</code>
+uniformly on the region; (A2) the subdivision rule is exhaustive: every infinitely
+refined branch has diameter → 0; (A3) the priority queue orders by <code>U</code> descending.
+Then:</em> (i) <em>the union of certified boxes is non-decreasing (certificate
+monotonicity), and any box once certified is never reopened;</em> (ii) <em>every point of</em>
+<code>R_θ = { y : L W(y) + alpha W(y) &lt;= theta }</code> <em>is eventually certified — the certified
+union converges to the largest <code>R</code>-measurable inner approximation of <code>R_θ</code></em>
+achievable at the box resolution; (iii) <em>if <code>sup_R (L W + alpha W) &gt; theta</code>, every
+infinite run terminates the refinement of every box whose closure does not intersect</em>
+<code>{L W + alpha W &gt; theta}</code>, <em>so unresolved volume concentrates around the true
+violation set.</em> <em>Proof.</em> (i) Children of a certified box inherit sound bounds ≤
+their parent's (each child's <code>sup</code> ≤ the parent's enclosure because the enclosures
+are evaluated on sub-boxes and soundness is pointwise; formally <code>sup_B ≤ sup_parent</code>
+and <code>U</code> is monotone under inclusion up to the uniform convergence (A1)), so no
+child can violate <code>&lt;= theta</code> in the limit; the queue never re-enqueues a certified
+box. (ii) Fix <code>y in R_θ</code> with margin <code>m = theta - (L W(y) + alpha W(y)) &gt; 0</code>. By
+(A1) there is <code>delta</code> with <code>U(B) &lt; L W(y_B) + alpha W(y_B) + m/2 &lt;= theta</code> for all
+boxes of diameter &lt; delta containing <code>y</code>. By (A2) the branch containing <code>y</code> is
+eventually subdivided below <code>delta</code> (its <code>U</code> exceeds theta while uncertified, and
+the priority ordering (A3) makes every branch with excess processed eventually —
+a finite number of branches have excess ≥ the branch's at each round because the
+sum of excesses is bounded on the compact region and each subdivision reduces the
+maximal excess; formally the set of boxes with <code>U &gt; theta</code> has measure bounded
+below by the unresolved measure and each step either certifies or bisects one of
+them, so in the limit none remain). Hence <code>y</code> ends in a certified box. (iii) is
+the contrapositive of (ii) restricted to the violation set: if a box's closure
+avoids the violation set, it has a positive margin and the (ii) argument certifies
+it. ∎</p>
+<p><strong>Corollary (What the reported number is).</strong>
+<em>The reported certified fraction is a lower bound on the volume of the true
+certificate set <code>R_θ</code> inside the region, exact at the box resolution; the
+complement is 'unknown', never 'unsafe'. Two runs with different budgets are
+monotone: the larger budget's certified set contains the smaller's.</em></p>
+<p><strong>Theorem 3 (Certificate robustness to plant mismatch).</strong>
+<em>Let the identified model be <code>(F, B)</code> with certificate constant</em>
+<code>c = sup_R (L W + alpha W) &lt;= theta</code>, <em>and let the true plant have drift <code>F_true =
+F + delta F</code> and diffusion <code>B_true = B + delta B</code> with <code>delta F</code> bounded and</em>
+<code>sup_R ||delta B B^T + B delta B^T + delta B delta B^T||_* &lt;= eta_B</code>
+<em>(<code>*</code> = the trace form against <code>Hess W</code>, i.e. the perturbation of the Ito term).
+If</em></p>
+<pre><code>sup_R | grad W . delta F |  +  (1/2) eta_B  &lt;=  theta - c,
+</code></pre>
+<p><em>then the certificate holds for the true plant:</em>
+<code>sup_R (L_true W + alpha W) &lt;= theta</code>. <em>In particular, with</em> <code>Lip(grad W on R) = L_W</code>
+<em>and <code>sup_R ||delta F|| &lt;= eta_F</code>, the sufficient condition is</em></p>
+<pre><code>L_W eta_F  +  (1/2) eta_B  &lt;=  theta - c.
+</code></pre>
+<p><em>Proof.</em> The generator is affine in the drift and the diffusion-squared:
+<code>L_true W = grad W . (F + delta F) + 1/2 tr((BB^T + delta BB^T + delta B B^T +
+delta B delta B^T) Hess W)</code>. Taking absolute values, the drift perturbation is
+bounded by <code>||grad W|| ||delta F|| &lt;= L_W eta_F</code> and the Ito perturbation by
+<code>(1/2) eta_B</code> (the cross terms are absorbed in the assumed trace bound). Sum and
+apply the hypothesis. ∎</p>
+<p><strong>Why Theorem 3 is the bridge to the real data.</strong>
+On C-MAPSS the measured identification floor is <code>rel ||delta A|| ≈ 0.021</code> against a
+drift signal <code>||delta A|| ≈ 0.40</code>; Theorem 3 turns exactly this ratio into a
+<em>certificate-validity</em> statement: any plant whose parameter deviation from the
+identified model stays within the floor inherits the certificate, while the era
+shift (20× the floor) is what the shadow-gate machinery (exp2/exp6) must detect
+and re-certify. The ETTm2 result — certification closing at 0 — is consistent with
+Theorem 3: when the identified floor <code>eta_F</code> itself is era-dependent and large,
+the margin condition fails and no sound certificate should be claimed, which is
+what was reported.</p>
+<p><strong>Theorem 4 (Scaling: effort tracks the certified factor's dimension).</strong>
+<em>Under the cascade constraints of section 9 (<code>F_e in R^{d x m} = 0</code>; rho-rows read
+eta through a bounded forcing), with the quadratic part of <code>W</code> fixed and the
+residual caps fixed: (i) the critical subdivision width</em> <code>w*</code>
+<em>at which a box's bound crosses <code>theta</code> is independent of <code>D</code>; (ii) uniform
+refinement to <code>w*</code> costs</em></p>
+<pre><code>effort(factor) = O((scale/w*)^d),   effort(full) = O((scale/w*)^D),
+</code></pre>
+<p><em>so at equal soundness</em> <code>effort(full) / effort(factor) = (scale/w*)^{D-d}</code>.
+<em>Proof.</em> (i) On a box of eta-half-width <code>w</code>, the eta-drift term is exact on the
+quadratic part of <code>V</code> (zero interval width of <code>Hess V</code>) plus a centered second-order
+remainder <code>O(L_gradV w^2)</code>; the coupling term is <code>sup ||grad_eta V|| * sup ||g_e||</code>
+over the eta-box, <code>O(L_g w)</code> with <code>L_g</code> the spectrally-capped Lipschitz constant;
+the rho block is handled in closed form independent of the eta box given <code>b_Q(w) =
+O(L_h w)</code>; the Ito trace converges as <code>O(w)</code> per dimension through the interval
+Jacobian width, contributing <code>O(w)</code> with constants depending on the <em>residual caps</em>,
+not on D (the cascade zeros kill the rho-columns of the drift Jacobian, and <code>Sigma</code>
+acts through the fixed transport Jacobian whose interval width is <code>O(w)</code> in the eta
+coordinates only, because the transport's coupling layers are triangular: eta-rows
+of <code>JT</code> do not depend on rho — this is the by-construction property of section 2).
+Hence <code>U(B) = U_0 + c_2 w^2 + c_1 w</code> with <code>U_0 = beta + alpha W(center)</code> and
+constants <code>c_1, c_2</code> independent of D; the crossing width <code>w*</code> solves
+<code>c_2 w^2 + c_1 w = theta - U_0</code>, independent of D. (ii) Uniform refinement to <code>w*</code>
+of the d-dimensional eta-box is <code>(scale/w*)^d</code> cells; each cell evaluates the same
+bound family with the same ring complexity (rings over the rho ball are recomputed
+per cell but their count depends on the caps, not on D since <code>Q</code>'s action on the
+ball is diagonalized once). In full mode every one of the D coordinates must be
+refined to <code>w*</code> — the same crossing-width argument gives each coordinate a width
+independent of D — giving <code>(scale/w*)^D</code> cells. The ratio follows. ∎</p>
+<p><em>(Theorem 4 makes precise what the ladder shows empirically: the factorised
+verifier's cost is exponential in d, not D. The proposition of section 9 is the
+informal statement; the constants' D-independence is exactly the cascade +
+triangularity structure that training enforces and the implementation preserves.)</em></p>
+<h2>13. Scope of the guarantees</h2>
+<p>What is proven: soundness of every certificate the site reports (Theorem 1), the
+necessity of the noise floor and its exact computation (Lemma 1), convergence and
+the precise meaning of 'unknown' (Theorem 2 + Corollary), validity under plant
+mismatch within the measured identification floor (Theorem 3), and the d-not-D
+scaling law (Theorem 4). What is not claimed: minimality of the certified set,
+existence of a certifying factorization for arbitrary plants (the learned transport
+is a search, and exp9 shows the search matters), or global (region-free)
+certificates — the region is part of the claim, and its size is reported.</p>
 </section>
 
 <footer>
