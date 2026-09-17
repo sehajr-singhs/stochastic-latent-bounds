@@ -156,7 +156,20 @@
 <p><strong>Honest reading.</strong> At native 15&#8209;minute sampling the ETTm2 plant is noise&#8209;dominated: the identified per&#8209;cycle diffusion puts the noise floor at &beta; &asymp; 1.3, the certified practical&#8209;stability ball covers most of the claimed region, and the sound verifier certifies 0% of it at this budget. We report this negative result with its mechanism rather than tuning it away: the pointwise certificate closes on 37% of probes, the violation fraction still separates the real load regimes, and the hot&#8209;swap gate remains exactly sound under the genuine regime shift &mdash; 0 unsafe swaps vs 8/8 unsafe for the naive gate. Certificate training on raw per&#8209;step differences fits noise in this regime (the two&#8209;stage push&#8209;forward refit, math.md &sect;11, is the fix for the <em>model</em>; the <em>region</em> stays bounded by the plant&#8217;s own noise&#8209;to&#8209;drift ratio).</p>
 <figure><img src="assets/fig6_grid.svg" alt="Certificate&#8209;violation fraction under the two real load regimes of the identified transformer plant. The daily regime cycle is a recurrent, predictable drift event."><figcaption>Certificate&#8209;violation fraction under the two real load regimes of the identified transformer plant. The daily regime cycle is a recurrent, predictable drift event.</figcaption></figure>
 <h2 id="baselines">8. Transport baselines: does the learned map matter? (exp7)</h2>
-<p class="muted">results/exp7_baselines.json not present.</p>
+<p>The claim under test: the certificate works because the transport is <em>learned</em>, not because any low&#8209;dimensional projection would do. Three coordinate maps &mdash; a fixed PCA map, a fixed random orthogonal map, and the learned invertible transport &mdash; through the identical downstream protocol (same latent&#8209;dynamics training budget, fixed quadratic certificate, region construction, node budget, and probe seeds). The fixed maps use exact linear interval arithmetic, so the comparison is not skewed by enclosure looseness.</p>
+<table>
+<tr><th>domain</th><th>transport</th><th>factor cert. frac.</th><th>full cert. frac.</th></tr>
+<tr><td>C&#8209;MAPSS (D=8)</td><td>PCA</td><td>1.000</td><td>0.000</td></tr>
+<tr><td>C&#8209;MAPSS (D=8)</td><td>Random</td><td>1.000</td><td>0.000</td></tr>
+<tr><td>C&#8209;MAPSS (D=8)</td><td>Learned</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>Air quality (D=10)</td><td>PCA</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>Air quality (D=10)</td><td>Random</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>Air quality (D=10)</td><td>Learned</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>ETTm2 (D=7)</td><td>PCA</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>ETTm2 (D=7)</td><td>Random</td><td>0.000</td><td>0.000</td></tr>
+<tr><td>ETTm2 (D=7)</td><td>Learned</td><td>0.000</td><td>0.000</td></tr>
+</table>
+<figure><img src="assets/fig7_baselines.svg" alt="Factor certified fraction for fixed PCA / random&#8209;projection maps vs the learned invertible transport, identical protocol on all three real domains. A learned column of &mdash; means the domain's full&#8209;run JSON had not landed at generation time."><figcaption>Factor certified fraction for fixed PCA / random&#8209;projection maps vs the learned invertible transport, identical protocol on all three real domains. A learned column of &mdash; means the domain's full&#8209;run JSON had not landed at generation time.</figcaption></figure>
 <h2 id="rigor">9. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
 <p><strong>Identification stability.</strong> Fit/holdout parameter agreement on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between half&#8209;fits. The measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) clear these floors, so the reported drift is signal, not identification noise.</p>
 <table>
