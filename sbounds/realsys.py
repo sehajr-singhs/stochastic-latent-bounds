@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import os
 
+import numpy as np
 import torch
 
 # 8 operational channels of FD001 (1-indexed as in the C-MAPSS schema):
@@ -122,8 +123,16 @@ class SensorSystem:
     def lqr_like_scale(self) -> torch.Tensor:
         """Per-coordinate stationary std: solve the OU Lyapunov equation for
         Sigma_stat (A S + S A^T + SS^T = 0 with S = diag(sigma_vec)) and take
-        sqrt(diag). Used only for random initialisation and region sizing."""
+        sqrt(diag). Used only for random initialisation and region sizing.
+        For D > 64 the exact Kronecker solve (a D^2 linear system) is replaced
+        by the diagonal approximation sqrt(sigma_i^2 / (-2 Re(A_ii))) -- exact
+        for diagonal A, right scaling for weakly coupled ones. Sizing only:
+        this never enters a sound bound."""
         D = self.dim
+        if D > 64:
+            lam = torch.diagonal(self.A)
+            return (self.sigma_vec / torch.sqrt((-2.0 * lam).clamp_min(1e-6)))\
+                .clamp_min(1e-4)
         S = torch.diag_embed(self.sigma_vec)
         # vec convention: vec(A X B) = (B^T kron A) vec(X); here A X + X A^T
         K = torch.kron(self.A, torch.eye(D, dtype=self.A.dtype)) + \
@@ -344,3 +353,58 @@ def load_prsa_aq(data_dir: str | None = None, station: str = "Aotizhongxin") -> 
     return {"X": Xz, "era_lo": era_lo, "era_hi": era_hi, "cols": list(AQ_COLS),
             "station": station, "n_rows": n, "n_filled": filled,
             "frac_heating": float(era_hi.mean()), "mu": mu, "sd": sd}
+
+
+# ---------------------------------------------------------------------------
+# Fourth real domain: continuous stirred-tank reactor sensor array (Kaggle,
+# eddardd/continuous-stirred-tank-reactor-domain-adaptation). Chemical-reactor
+# physics at plant scale: 1404 sensor channels, 2860 consecutive samples with
+# lag-1 autocorrelation ~0.95, and a *real* regime change -- the final quarter
+# of the timeline both shifts the attractor (~0.3 sd per channel) and triples
+# its variance, the runaway-adjacent behaviour reactor safety cares about.
+# Channels are subsampled by an explicit stride so the identified dimension D
+# is a knob: stride 8 gives D = 175 -- the first real domain above D = 100.
+# ---------------------------------------------------------------------------
+
+CSTR_STRIDE = 8
+
+
+def load_cstr(data_dir: str | None = None, stride: int = CSTR_STRIDE) -> dict:
+    """Load the CSTR sensor array, subsample channels, z-score on the calm era.
+
+    Returns the same contract as the other real loaders: X (N, D) z-scored,
+    era_lo / era_hi flags (era_hi = last quarter of the timeline, the disturbed
+    regime), unit = segment ids (one continuous segment per era half, so first
+    differences used by the OU fit never cross the regime boundary), plus the
+    held-out last 15% of the timeline for real world-model scoring.
+    """
+    here = os.path.dirname(os.path.abspath(__file__))
+    default = os.path.join(os.path.dirname(here), "data", "cstr",
+                           "cstr_rawdata.npy")
+    path = data_dir or default
+    raw = torch.tensor(np.load(path), dtype=torch.float64)      # (N, 1404)
+    if raw.shape[0] < 500 or raw.shape[1] < 100:
+        raise ValueError(f"unexpected CSTR array shape {tuple(raw.shape)}")
+    if not torch.isfinite(raw).all():
+        raise ValueError("non-finite values in CSTR array")
+    X = raw[:, ::stride]
+    N = X.shape[0]
+    # eras: quarters of the timeline; era_hi = final quarter (disturbed regime)
+    q = N // 4
+    era_hi = torch.zeros(N, dtype=torch.float64)
+    era_hi[3 * q:] = 1.0
+    era_lo = 1.0 - era_hi
+    # standardize on the calm era only
+    mu = X[era_lo == 1.0].mean(dim=0)
+    sd = X[era_lo == 1.0].std(dim=0).clamp_min(1e-9)
+    Xz = (X - mu) / sd
+    # segment ids: two halves within each era so the OU fit's first differences
+    # never cross the regime boundary (era boundary is the regime switch)
+    seg = torch.arange(N, dtype=torch.int64)
+    seg = seg // (N // 2)
+    seg = seg * 2 + (era_hi == 1.0).to(torch.int64)
+    n_hold = int(N * 0.15)
+    return {"X": Xz, "era_lo": era_lo, "era_hi": era_hi, "unit": seg,
+            "X_hold": Xz[-n_hold:], "unit_hold": seg[-n_hold:],
+            "cols": [f"s{j:04d}" for j in range(0, raw.shape[1], stride)],
+            "n_rows": N, "D": X.shape[1], "stride": stride, "mu": mu, "sd": sd}

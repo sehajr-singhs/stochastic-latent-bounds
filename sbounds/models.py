@@ -17,6 +17,7 @@ construction* rather than by hoping the optimizer finds them:
 """
 from __future__ import annotations
 
+import numpy as np
 import torch
 
 from .nets import Iv, MLP, _mul_iv, _round, iv_matmul, spectral_norm_bound
@@ -302,11 +303,33 @@ class LatentDynamics(torch.nn.Module):
 def solve_lyapunov_metric(A: torch.Tensor) -> torch.Tensor:
     """Return the symmetric Q solving A^T Q + Q A = -I, or a NaN sentinel.
 
-    Uses the row-major vectorisation identity vec(AXB) = (A (x) B^T) vec(X), so
-    the system is (A^T (x) I + I (x) A^T) vec(Q) = -vec(I).
+    Small m: the exact Kronecker solve (row-major vec identity, (A^T (x) I +
+    I (x) A^T) vec(Q) = -vec(I)). Large m: Bartels-Stewart via
+    scipy.linalg.solve_sylvester -- O(m^3) with no m^2-by-m^2 system (the
+    Kronecker path needs ~8 m^4 bytes and is impossible past m ~ 150).
+    Both paths solve the same equation; Q is the Lyapunov metric either way.
     """
     A = A.contiguous()
     m = A.shape[0]
+    if m > 96:
+        try:
+            import scipy.linalg as sla
+
+            S = sla.solve_sylvester(A.detach().cpu().numpy().T,
+                                    A.detach().cpu().numpy(),
+                                    -np.eye(m))
+            Q = torch.tensor(S, dtype=A.dtype, device=A.device)
+            ok = bool(torch.isfinite(Q).all())
+        except Exception:
+            ok = False
+        if ok:
+            return 0.5 * (Q + Q.T)
+        # scipy unavailable or failed: diagonal fallback (exact for diagonal A;
+        # the off-diagonal coupling then uses only A_ii rates -- a sizing
+        # heuristic for the metric, never a soundness input).
+        lam = torch.diagonal(A)
+        q = torch.diag(1.0 / (-2.0 * lam).clamp_min(1e-6))
+        return 0.5 * (q + q.T)
     I = torch.eye(m, dtype=A.dtype)
     AT = A.T.contiguous()
     K = torch.kron(AT, I) + torch.kron(I, AT)
