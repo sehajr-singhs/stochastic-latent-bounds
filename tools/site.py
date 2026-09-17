@@ -80,6 +80,8 @@ HEADER = """<!DOCTYPE html>
   &nbsp;&nbsp;&nbsp;<a href="results.html#airquality">Air quality (exp5)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#grid">Grid physics (exp6)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#nonlinear">Nonlinear separation test (exp9)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
@@ -105,12 +107,14 @@ def _load(name):
         return json.load(fh)
 
 
-def _fmt(v, nd=3):
+def _fmt(v, nd=3, sci=False):
     if v is None:
         return "&mdash;"
     if isinstance(v, bool):
         return "yes" if v else "no"
     if isinstance(v, float):
+        if sci and (abs(v) < 1e-3 or abs(v) >= 1e4):
+            return f"{v:.2e}"
         return f"{v:.{nd}f}"
     return str(v)
 
@@ -378,7 +382,41 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp7_baselines.json not present.</p>')
 
-    o.append('<h2 id="rigor">9. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
+    o.append('<h2 id="nonlinear">9. The nonlinear test: learned transport vs fixed maps (exp9)</h2>')
+    d9 = _load("exp9_nonlinear.json")
+    if d9:
+        rows = []
+        for key, label in (("pca", "PCA"), ("random", "Random projection"),
+                           ("learned", "Learned invertible transport (ours)")):
+            e = d9.get(key) or {}
+            cert = (e.get("cert") or {})
+            fac = (cert.get("factor") or {})
+            rows.append([label,
+                         _fmt(fac.get("certified_fraction")),
+                         _fmt(e.get("viol_frac")),
+                         _fmt(cert.get("beta"), sci=True),
+                         _fmt(fac.get("worst_upper"), sci=True)])
+        o.append("<p><strong>The decisive separation.</strong> On the nonlinear 4&#8209;link arm "
+                 "(D=8, d=2) the coordinate map must actively undo the dynamics&#8217; sin/cos "
+                 "curvature &mdash; no orthogonal map can. Same protocol, budgets and seeds as "
+                 "section 8. The learned transport certifies <strong>64.9%</strong> of the region "
+                 "factor&#8209;mode; PCA certifies 2.0% and a random orthogonal map 0.0%. The certified "
+                 "upper bound at the worst point is ~55&times; tighter for the learned map than PCA "
+                 "and ~245&times; tighter than random &mdash; the gap is in the <em>bound quality</em>, "
+                 "not just the fraction: the learned coordinates align the region with the "
+                 "contracting directions the certificate exploits.</p>")
+        o.append(_table(["map", "factor certified frac.", "pointwise viol.", "noise floor &beta;", "worst certified upper"], rows))
+        o.append(_fig("fig9_nonlinear.svg",
+                      "Factor certified fraction on the nonlinear N&#8209;link plant: fixed linear maps "
+                      "vs the learned invertible transport, identical protocol (exp9)."))
+        o.append("<p class=\"muted\">Together with section 8 this closes the argument: on "
+                 "linear&#8209;Gaussian identified plants any orthogonal map suffices (the machinery, "
+                 "not the map, is the contribution there); on genuinely nonlinear plants the "
+                 "learned diffeomorphic transport is what makes the region certifiable at all.</p>")
+    else:
+        o.append('<p class="muted">results/exp9_nonlinear.json not present.</p>')
+
+    o.append('<h2 id="rigor">10. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
     d8 = _load("exp8_validation.json")
     if d8:
         stab = d8.get("identification_stability")

@@ -363,6 +363,46 @@ def fig_baselines():
     return True
 
 
+def fig_nonlinear():
+    data = _load("exp9_nonlinear.json")
+    if data is None:
+        return False
+    variants = [("pca", "PCA", BLUE), ("random", "Random proj.", GREY),
+                ("learned", "Learned (ours)", ACCENT)]
+    w, h, m = 640, 400, 64
+    lo_y, hi_y = 0.0, 1.0
+
+    def Y(v):
+        return (h - m) - (h - 2 * m) * (v - lo_y) / (hi_y - lo_y)
+
+    o = _svg_open(w, h, "Nonlinear N-link plant: fixed linear maps vs the learned transport")
+    o += _axes(w, h, m, "", "factor certified fraction", "")
+    o += _yticks(m, w, h, lo_y, hi_y, [0, 0.25, 0.5, 0.75, 1.0], lambda t: f"{t:.2f}")
+    group_w = (w - 2 * m)
+    bw = group_w * 0.16
+    cx0 = m + group_w * 0.5
+    for vi, (key, vlabel, color) in enumerate(variants):
+        entry = data.get(key)
+        frac = None
+        if isinstance(entry, dict):
+            cert = entry.get("cert") or {}
+            frac = (cert.get("factor") or {}).get("certified_fraction")
+        x = cx0 + (vi - 1) * (bw + 26)
+        if frac is None:
+            o.append(_text(x, Y(0) - 6, "n/a", 11, GREY))
+            continue
+        y0, y1 = Y(0), Y(max(frac, 0.005))
+        o.append(f'<rect x="{x - bw / 2:.1f}" y="{y1:.1f}" width="{bw:.1f}" '
+                 f'height="{max(y0 - y1, 1.0):.1f}" fill="{color}" opacity="0.85"/>')
+        o.append(_text(x, y1 - 6, f"{frac:.2f}", 11.5, color, weight="bold"))
+        o.append(_text(x, Y(0) + 16, vlabel, 12, INK))
+    o.append(_text(m + 8, m + 14, "N-link arm (D=8, d=2): the map must undo sin/cos dynamics", 11, GREY, "start"))
+    o.append("</svg>")
+    with open(os.path.join(SITE, "fig9_nonlinear.svg"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(o))
+    return True
+
+
 def fig_rigor():
     data = _load("exp8_validation.json")
     if data is None or "ablations" not in data:

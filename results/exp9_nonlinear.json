@@ -1,0 +1,77 @@
+{
+  "learned": {
+    "cert": {
+      "beta": 7.579880368275353e-05,
+      "tol": 0.05,
+      "threshold": 0.05007579880368276,
+      "factor": {
+        "certified_fraction": 0.6494140624999999,
+        "nodes": 4030,
+        "seconds": 883.1435482501984,
+        "worst_upper": 0.2049290501756571,
+        "fully_certified": false
+      },
+      "full": {
+        "certified_fraction": 0.0,
+        "nodes": 4030,
+        "seconds": 136.2762806415558,
+        "worst_upper": 67.99366727214674,
+        "fully_certified": false
+      }
+    },
+    "beta": 7.579880368275353e-05,
+    "viol_frac": 0.478515625,
+    "cert_viol_frac": 0.0,
+    "seconds": null
+  },
+  "pca": {
+    "cert": {
+      "beta": 0.00457663222682711,
+      "tol": 0.05,
+      "threshold": 0.05457663222682711,
+      "factor": {
+        "certified_fraction": 0.019531249999999993,
+        "nodes": 4030,
+        "seconds": 8.139360189437866,
+        "worst_upper": 11.439876949075531,
+        "fully_certified": false
+      },
+      "full": {
+        "certified_fraction": 0.0,
+        "nodes": 4030,
+        "seconds": 0.7937138080596924,
+        "worst_upper": 147.93564622034793,
+        "fully_certified": false
+      }
+    },
+    "beta": 0.00457663222682711,
+    "viol_frac": 0.3125,
+    "cert_viol_frac": 0.0,
+    "seconds": 70.77320599555969
+  },
+  "random": {
+    "cert": {
+      "beta": 0.0020060436565795797,
+      "tol": 0.05,
+      "threshold": 0.052006043656579584,
+      "factor": {
+        "certified_fraction": 0.0,
+        "nodes": 4030,
+        "seconds": 8.0150785446167,
+        "worst_upper": 49.25839586020518,
+        "fully_certified": false
+      },
+      "full": {
+        "certified_fraction": 0.0,
+        "nodes": 4030,
+        "seconds": 0.7910218238830566,
+        "worst_upper": 1479.765421979465,
+        "fully_certified": false
+      }
+    },
+    "beta": 0.0020060436565795797,
+    "viol_frac": 0.59765625,
+    "cert_viol_frac": 0.3125,
+    "seconds": 22.706542015075684
+  }
+}
