@@ -359,6 +359,17 @@ def build_results():
                                  _fmt(e["cert"]["full"]["certified_fraction"])])
         if rows:
             o.append(_table(["domain", "transport", "factor cert. frac.", "full cert. frac."], rows))
+        o.append(
+            "<p><strong>What the table actually shows &mdash; and why we report it.</strong> "
+            "On the real&#8209;data domains the identified plants are linear&#8209;Gaussian "
+            "(Ornstein&#8209;Uhlenbeck) models, and for a linear plant <em>any</em> orthogonal "
+            "coordinate map supports the same factorised certificate: PCA and random "
+            "projections certify the region too (pointwise violations 0.000 on the fleet "
+            "domain). This is an honest scope statement, not a defeat: the certificate "
+            "machinery needs <em>a</em> factorisation, and linear plants factor trivially. "
+            "The learned transport&#8217;s claim is about <em>nonlinear</em> plants, where the "
+            "map must undo the dynamics&#8217; own curvature &mdash; exp9 (below) runs the "
+            "identical comparison on the nonlinear N&#8209;link arm.</p>")
         o.append(_fig("fig7_baselines.svg",
                       "Factor certified fraction for fixed PCA / random&#8209;projection maps vs the "
                       "learned invertible transport, identical protocol on all three real domains. "
