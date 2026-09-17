@@ -390,8 +390,12 @@ def build_results():
                 rows.append([label, s["split"], _fmt(s["rel_dA"]), _fmt(s["rel_dsigma"]), extra])
             o.append("<p><strong>Identification stability.</strong> Fit/holdout parameter agreement "
                      "on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between "
-                     "half&#8209;fits. The measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) "
-                     "clear these floors, so the reported drift is signal, not identification noise.</p>")
+                     "half&#8209;fits. On C&#8209;MAPSS and air quality the measured era&#8209;drift signals "
+                     "(||&Delta;A|| &asymp; 0.40&ndash;0.48) clear these floors by an order of magnitude, so the "
+                     "reported drift is signal, not identification noise. On ETTm2 the identification "
+                     "itself is era&#8209;dependent (rel ||&Delta;A|| &asymp; 6 across the timeline split), "
+                     "consistent with the noise&#8209;dominated verdict of section 6 &mdash; reported as a "
+                     "finding, not hidden.</p>")
             o.append(_table(["domain", "split", "rel ||&Delta;A||", "rel ||&Delta;&sigma;||", ""], rows))
         boot = d8.get("bootstrap_ci")
         if boot:

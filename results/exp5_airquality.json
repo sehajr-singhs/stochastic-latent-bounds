@@ -1,0 +1,260 @@
+{
+  "dataset": "Beijing PRSA multi-site air quality, Aotizhongxin (Kaggle sid321axn/beijing-multisite-airquality-data-set)",
+  "identification": {
+    "station": "Aotizhongxin",
+    "channels": [
+      "PM2.5",
+      "PM10",
+      "SO2",
+      "NO2",
+      "CO",
+      "O3",
+      "TEMP",
+      "PRES",
+      "DEWP",
+      "WSPM"
+    ],
+    "n_rows": 35064,
+    "n_filled": 7170,
+    "frac_heating": 0.2546201232032854,
+    "dA_norm": 0.47736223810385187,
+    "dsigma_norm": 0.3904003118748995,
+    "attractor_shift": 3.854700803120288,
+    "clamp_base": 0.00988756202511978,
+    "clamp_heat": 0.007817818622023055,
+    "sigma_base": [
+      0.25777852295203657,
+      0.3818003332103655,
+      0.27659745089694643,
+      0.3525248093448281,
+      0.3466118231953348,
+      0.2777167848453803,
+      0.1304080018016165,
+      0.08134067185559068,
+      0.10855117386317743,
+      0.6183782803592079
+    ],
+    "sigma_heat": [
+      0.3374084137347575,
+      0.39841046384195744,
+      0.48130616995272585,
+      0.36208873661184376,
+      0.6233920165734465,
+      0.1293262727344585,
+      0.13784977903532972,
+      0.14372851603306594,
+      0.0980350520554223,
+      0.6517433475069625
+    ]
+  },
+  "alpha": 0.05,
+  "kappa": 1.0,
+  "tol": 0.05,
+  "d_eta": 2,
+  "D": 10,
+  "beta": 0.38640260322675,
+  "params": 14878,
+  "world_model": {
+    "rel_err_mean": 29.205471875264966
+  },
+  "cert_viol_frac": 0.0,
+  "cert_max_gen": -0.15132622815794608,
+  "lam_Q": 60.480282769007744,
+  "seconds_world_model": 93.15929794311523,
+  "seconds_certificate": 737.8130369186401,
+  "cert": {
+    "beta": 0.38640260322675,
+    "tol": 0.05,
+    "threshold": 0.43640260322675,
+    "factor": {
+      "certified_fraction": 0.0,
+      "nodes": 318,
+      "seconds": 283.4876968860626,
+      "worst_upper": 185.1635007840511,
+      "fully_certified": false
+    },
+    "full": {
+      "certified_fraction": 0.0,
+      "nodes": 1534,
+      "seconds": 131.82809829711914,
+      "worst_upper": 185.9971162785257,
+      "fully_certified": false
+    }
+  },
+  "era": {
+    "healthy": {
+      "viol_frac": 0.26953125,
+      "mean_resid": null
+    },
+    "aged": {
+      "viol_frac": 0.302734375,
+      "mean_resid": null
+    }
+  },
+  "shadow": {
+    "sound": {
+      "accepted": 0,
+      "rejected": 8,
+      "unsafe_swaps": 0,
+      "unsafe_swap_fraction": 0.0,
+      "fallback_rounds": 2,
+      "seconds": 1966.9765236377716,
+      "rounds": [
+        {
+          "round": 0,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 196.09909293909135,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 1,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 200.9095545562455,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 2,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 194.82027607410768,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 3,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 192.52108443129606,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 4,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 240.53013203790022,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        },
+        {
+          "round": 5,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 239.8837050933736,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        },
+        {
+          "round": 6,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 244.51119212574315,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        },
+        {
+          "round": 7,
+          "accepted": false,
+          "gate_ok": false,
+          "worst_upper": 247.69536656314466,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        }
+      ]
+    },
+    "naive": {
+      "accepted": 8,
+      "rejected": 0,
+      "unsafe_swaps": 8,
+      "unsafe_swap_fraction": 1.0,
+      "fallback_rounds": 0,
+      "seconds": 352.07827520370483,
+      "rounds": [
+        {
+          "round": 0,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 1,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 2,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 3,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.328125,
+          "max_resid_after": 2.0520743703862254,
+          "unsafe": true
+        },
+        {
+          "round": 4,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        },
+        {
+          "round": 5,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        },
+        {
+          "round": 6,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        },
+        {
+          "round": 7,
+          "accepted": true,
+          "gate_ok": true,
+          "worst_upper": null,
+          "viol_frac_after": 0.3125,
+          "max_resid_after": 3.426018114732761,
+          "unsafe": true
+        }
+      ]
+    }
+  }
+}

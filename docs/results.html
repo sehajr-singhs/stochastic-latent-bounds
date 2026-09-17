@@ -172,7 +172,7 @@
 <p><strong>What the table actually shows &mdash; and why we report it.</strong> On the real&#8209;data domains the identified plants are linear&#8209;Gaussian (Ornstein&#8209;Uhlenbeck) models, and for a linear plant <em>any</em> orthogonal coordinate map supports the same factorised certificate: PCA and random projections certify the region too (pointwise violations 0.000 on the fleet domain). This is an honest scope statement, not a defeat: the certificate machinery needs <em>a</em> factorisation, and linear plants factor trivially. The learned transport&#8217;s claim is about <em>nonlinear</em> plants, where the map must undo the dynamics&#8217; own curvature &mdash; exp9 (below) runs the identical comparison on the nonlinear N&#8209;link arm.</p>
 <figure><img src="assets/fig7_baselines.svg" alt="Factor certified fraction for fixed PCA / random&#8209;projection maps vs the learned invertible transport, identical protocol on all three real domains. A learned column of &mdash; means the domain's full&#8209;run JSON had not landed at generation time."><figcaption>Factor certified fraction for fixed PCA / random&#8209;projection maps vs the learned invertible transport, identical protocol on all three real domains. A learned column of &mdash; means the domain's full&#8209;run JSON had not landed at generation time.</figcaption></figure>
 <h2 id="rigor">9. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
-<p><strong>Identification stability.</strong> Fit/holdout parameter agreement on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between half&#8209;fits. The measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) clear these floors, so the reported drift is signal, not identification noise.</p>
+<p><strong>Identification stability.</strong> Fit/holdout parameter agreement on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between half&#8209;fits. On C&#8209;MAPSS and air quality the measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) clear these floors by an order of magnitude, so the reported drift is signal, not identification noise. On ETTm2 the identification itself is era&#8209;dependent (rel ||&Delta;A|| &asymp; 6 across the timeline split), consistent with the noise&#8209;dominated verdict of section 6 &mdash; reported as a finding, not hidden.</p>
 <table>
 <tr><th>domain</th><th>split</th><th>rel ||&Delta;A||</th><th>rel ||&Delta;&sigma;||</th><th></th></tr>
 <tr><td>C&#8209;MAPSS</td><td>odd vs even engines</td><td>0.021</td><td>0.010</td><td>rel ||db|| = 1.490</td></tr>
@@ -182,10 +182,12 @@
 <p><strong>Bootstrap CIs.</strong> Percentile intervals (2000 resamples) for the pointwise certificate&#8209;violation fraction over 2048 fixed region probes under the real plant.</p>
 <table>
 <tr><th>domain</th><th>viol. frac.</th><th>95% CI</th><th>probes</th><th>resamples</th></tr>
-<tr><td>C&#8209;MAPSS</td><td>0.564</td><td>[0.543, 0.585]</td><td>2048</td><td>2000</td></tr>
-<tr><td>Air quality</td><td>0.299</td><td>[0.279, 0.319]</td><td>2048</td><td>2000</td></tr>
+<tr><td>C&#8209;MAPSS</td><td>0.078</td><td>[0.067, 0.090]</td><td>2048</td><td>2000</td></tr>
+<tr><td>Air quality</td><td>0.417</td><td>[0.395, 0.439]</td><td>2048</td><td>2000</td></tr>
+<tr><td>ETTm2</td><td>0.616</td><td>[0.596, 0.638]</td><td>2048</td><td>2000</td></tr>
 </table>
 <figure><img src="assets/fig8_rigor.svg" alt="Sensitivity of the pointwise certificate to the evaluation&#8209;points parameter &kappa;, diffusion scaling, and region scaling, on the C&#8209;MAPSS checkpoint."><figcaption>Sensitivity of the pointwise certificate to the evaluation&#8209;points parameter &kappa;, diffusion scaling, and region scaling, on the C&#8209;MAPSS checkpoint.</figcaption></figure>
+<p><strong>Seed stability.</strong> Certificate re&#8209;training from 3 seeds (fixed quadratic V; the learned latent dynamics varies): violation fraction 0.086 &plusmn; 0.000, noise floor &beta; relative std 0.000.</p>
 <h2>How to reproduce</h2>
 <ul>
 <li><code>python experiments/exp1_main.py</code> &mdash; trains and certifies each arm size (checkpointed; re-runs skip finished stages).</li>
