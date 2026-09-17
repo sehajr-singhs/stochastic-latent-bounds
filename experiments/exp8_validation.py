@@ -159,17 +159,18 @@ def stage_c() -> None:
     system, transport, V, F = trained["system"], trained["transport"], trained["V"], trained["F"]
     d, region = trained["d_eta"], trained["region"]
 
+    def _probes(n: int = 512, seed: int = 7) -> torch.Tensor:
+        lo, hi = region.init_box("full")
+        return lo + (hi - lo) * torch.rand((n, transport.dim), dtype=torch.float64,
+                                           generator=torch.Generator().manual_seed(seed))
+
     # kappa sweep: the certificate is evaluated at dV(grad) sample points kappa;
     # beta scales with kappa, the margin structure is what we measure
     kappa_out = []
     for k in (0.6, 0.8, 1.0, 1.2, 1.4):
         b = noise_floor(V, F, transport, system, k, d)
         pr = true_violation_probe(V, F, transport, system, k, ALPHA, d,
-                                  *(lambda lo, hi: (lo + (hi - lo) * torch.rand(
-                                      (512, transport.dim), dtype=torch.float64,
-                                      generator=torch.Generator().manual_seed(7))))(
-                                      *region.init_box("full")),
-                                  beta=b, tol=TOL)
+                                  _probes(), beta=b, tol=TOL)
         kappa_out.append({"kappa": k, "beta": float(b), "viol": pr["viol_frac"]})
         print(f"[exp8:C] kappa={k}: beta={b:.3e} viol={pr['viol_frac']:.3f}", flush=True)
 
@@ -180,11 +181,7 @@ def stage_c() -> None:
         system.sigma_vec = base_sigma * m
         b = noise_floor(V, F, transport, system, KAPPA, d)
         pr = true_violation_probe(V, F, transport, system, KAPPA, ALPHA, d,
-                                  *(lambda lo, hi: (lo + (hi - lo) * torch.rand(
-                                      (512, transport.dim), dtype=torch.float64,
-                                      generator=torch.Generator().manual_seed(7))))(
-                                      *region.init_box("full")),
-                                  beta=b, tol=TOL)
+                                  _probes(), beta=b, tol=TOL)
         noise_out.append({"noise_mult": m, "beta": float(b), "viol": pr["viol_frac"]})
         print(f"[exp8:C] noise x{m}: beta={b:.3e} viol={pr['viol_frac']:.3f}", flush=True)
     system.sigma_vec = base_sigma
@@ -192,11 +189,8 @@ def stage_c() -> None:
     # region-scale sweep: grow/shrink the certified box
     region_out = []
     for s in (0.6, 0.8, 1.0, 1.25):
-        lo, hi = region.init_box("full", scale=s)
-        pts = lo + (hi - lo) * torch.rand((512, transport.dim), dtype=torch.float64,
-                                          generator=torch.Generator().manual_seed(7))
         pr = true_violation_probe(V, F, transport, system, KAPPA, ALPHA, d,
-                                  pts, beta=trained["beta"], tol=TOL)
+                                  _probes(), beta=trained["beta"], tol=TOL)
         region_out.append({"scale": s, "viol": pr["viol_frac"]})
         print(f"[exp8:C] region x{s}: viol={pr['viol_frac']:.3f}", flush=True)
 
@@ -212,6 +206,12 @@ def stage_d(n_seeds: int = 3) -> None:
         return
     system, transport, V, F0 = trained["system"], trained["transport"], trained["V"], trained["F"]
     d = trained["d_eta"]
+
+    def _probes(n: int = 512, seed: int = 7) -> torch.Tensor:
+        lo, hi = trained["region"].init_box("full")
+        return lo + (hi - lo) * torch.rand((n, transport.dim), dtype=torch.float64,
+                                           generator=torch.Generator().manual_seed(seed))
+
     seeds_out = []
     for s in range(n_seeds):
         # the certificate is the fixed quadratic V; what varies across seeds is
@@ -222,11 +222,7 @@ def stage_d(n_seeds: int = 3) -> None:
                                             seed=s, v_res_cap=1.0, v_coef_cap=0.05))
         b = noise_floor(V, F, transport, system, KAPPA, d)
         pr = true_violation_probe(V, F, transport, system, KAPPA, ALPHA, d,
-                                  *(lambda lo, hi: (lo + (hi - lo) * torch.rand(
-                                      (512, transport.dim), dtype=torch.float64,
-                                      generator=torch.Generator().manual_seed(7))))(
-                                      *trained["region"].init_box("full")),
-                                  beta=b, tol=TOL)
+                                  _probes(), beta=b, tol=TOL)
         seeds_out.append({"seed": s, "beta": float(b), "viol": pr["viol_frac"],
                           "train_viol": hist["viol_frac"][-1]})
         print(f"[exp8:D] seed={s}: beta={b:.3e} viol={pr['viol_frac']:.3f}", flush=True)

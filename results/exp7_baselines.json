@@ -1,0 +1,245 @@
+{
+  "cmapss": {
+    "identification": {
+      "dA_norm": 0.40414602671259364,
+      "attractor_shift": 2.8229417737001685,
+      "n_rows": 16138,
+      "D": 5
+    },
+    "pca": {
+      "cert": {
+        "beta": 1.8475291398782274,
+        "tol": 0.05,
+        "threshold": 1.8975291398782275,
+        "factor": {
+          "certified_fraction": 1.0,
+          "nodes": 1564,
+          "seconds": 4.512214183807373,
+          "worst_upper": 294.2037759979601,
+          "fully_certified": true
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 0.9005873203277588,
+          "worst_upper": 26.24988557425191,
+          "fully_certified": false
+        }
+      },
+      "beta": 1.8475291398782274,
+      "viol_frac": 0.0,
+      "cert_viol_frac": 0.0,
+      "seconds": 28.841296195983887
+    },
+    "learned": {
+      "cert": {
+        "beta": 0.04899815464622426,
+        "tol": 0.05,
+        "threshold": 0.09899815464622426,
+        "factor": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 166.78500318527222,
+          "worst_upper": 69.06016579315033,
+          "fully_certified": false
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 20.099411725997925,
+          "worst_upper": 73.20431481435008,
+          "fully_certified": false
+        }
+      },
+      "beta": 0.04899815464622426,
+      "cert_viol_frac": 0.0
+    },
+    "random": {
+      "cert": {
+        "beta": 1.811761587765809,
+        "tol": 0.05,
+        "threshold": 1.8617615877658091,
+        "factor": {
+          "certified_fraction": 0.9999999999999998,
+          "nodes": 1282,
+          "seconds": 3.681455135345459,
+          "worst_upper": 148.88476367505353,
+          "fully_certified": true
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 0.8982229232788086,
+          "worst_upper": 29.873399583893452,
+          "fully_certified": false
+        }
+      },
+      "beta": 1.811761587765809,
+      "viol_frac": 0.0,
+      "cert_viol_frac": 0.0,
+      "seconds": 27.179471254348755
+    }
+  },
+  "aqi": {
+    "identification": {
+      "dA_norm": 0.47736223810385237,
+      "attractor_shift": 3.8547008031202914,
+      "n_rows": 35064,
+      "D": 10
+    },
+    "pca": {
+      "cert": {
+        "beta": 0.3314821003637421,
+        "tol": 0.05,
+        "threshold": 0.3814821003637421,
+        "factor": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 0.18404340744018555,
+          "worst_upper": Infinity,
+          "fully_certified": false
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 1.171616554260254,
+          "worst_upper": 36.25249297989025,
+          "fully_certified": false
+        }
+      },
+      "beta": 0.3314821003637421,
+      "viol_frac": 0.05078125,
+      "cert_viol_frac": 0.0,
+      "seconds": 28.363744020462036
+    },
+    "learned": {
+      "cert": {
+        "beta": 2.4238146016276922,
+        "tol": 0.05,
+        "threshold": 2.473814601627692,
+        "factor": {
+          "certified_fraction": 0.0,
+          "nodes": 382,
+          "seconds": 937.2522916793823,
+          "worst_upper": 294.4930643309346,
+          "fully_certified": false
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 3262,
+          "seconds": 913.4152984619141,
+          "worst_upper": 992.7132844801271,
+          "fully_certified": false
+        }
+      },
+      "beta": 2.4238146016276922,
+      "cert_viol_frac": 0.0
+    },
+    "random": {
+      "cert": {
+        "beta": 1.8387678512727819,
+        "tol": 0.05,
+        "threshold": 1.888767851272782,
+        "factor": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 11.649214029312134,
+          "worst_upper": 21.442957024681274,
+          "fully_certified": false
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 1.1870133876800537,
+          "worst_upper": 311.17488785757996,
+          "fully_certified": false
+        }
+      },
+      "beta": 1.8387678512727819,
+      "viol_frac": 0.166015625,
+      "cert_viol_frac": 0.0,
+      "seconds": 39.570772886276245
+    }
+  },
+  "ett": {
+    "identification": {
+      "dA_norm": 0.056383888117277785,
+      "attractor_shift": 1.0844066245001294,
+      "n_rows": 69680,
+      "D": 7
+    },
+    "pca": {
+      "cert": {
+        "beta": 0.8032198107531541,
+        "tol": 0.05,
+        "threshold": 0.8532198107531541,
+        "factor": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 10.874147415161133,
+          "worst_upper": 8.165349983221672,
+          "fully_certified": false
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 0.9461658000946045,
+          "worst_upper": 74.53549061764691,
+          "fully_certified": false
+        }
+      },
+      "beta": 0.8032198107531541,
+      "viol_frac": 0.541015625,
+      "cert_viol_frac": 0.0,
+      "seconds": 37.02822136878967
+    },
+    "learned": {
+      "cert": {
+        "beta": 1.264291239966146,
+        "tol": 0.05,
+        "threshold": 1.314291239966146,
+        "factor": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 167.40576767921448,
+          "worst_upper": 548.2047057012722,
+          "fully_certified": false
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 20.126440286636353,
+          "worst_upper": 3923.9708485987394,
+          "fully_certified": false
+        }
+      },
+      "beta": 1.264291239966146,
+      "cert_viol_frac": 0.0
+    },
+    "random": {
+      "cert": {
+        "beta": 0.6233019671229446,
+        "tol": 0.05,
+        "threshold": 0.6733019671229447,
+        "factor": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 10.73140263557434,
+          "worst_upper": 6.278877638894825,
+          "fully_certified": false
+        },
+        "full": {
+          "certified_fraction": 0.0,
+          "nodes": 4030,
+          "seconds": 0.9456741809844971,
+          "worst_upper": 62.87035556098565,
+          "fully_certified": false
+        }
+      },
+      "beta": 0.6233019671229446,
+      "viol_frac": 0.470703125,
+      "cert_viol_frac": 0.0,
+      "seconds": 36.719948291778564
+    }
+  }
+}
