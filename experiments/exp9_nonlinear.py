@@ -55,8 +55,16 @@ def _probe_viol(trained: dict, system, n: int = 512) -> float:
                                       generator=torch.Generator().manual_seed(7))
     pr = true_violation_probe(trained["V"], trained["F"], trained["transport"],
                               system, KAPPA, ALPHA, d, pts,
-                              beta=trained["beta"], tol=TOL)
+                              beta=_beta_of(trained), tol=TOL)
     return pr["viol_frac"]
+
+
+def _beta_of(trained: dict) -> float:
+    """Top-level beta for freshly trained variants; cert.beta for exp1 ckpts."""
+    b = trained.get("beta")
+    if b is None:
+        b = trained["cert"]["beta"]
+    return float(b)
 
 
 def run_linear_variant(kind: str, system: ChainArm, wm_steps: int, cert_steps: int,
