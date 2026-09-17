@@ -95,7 +95,7 @@
   branch&#8209;and&#8209;bound &mdash; never assumed from samples.
 </p>
 <div class="stats">
-  <div class="stat"><div class="v">64.9%</div><div class="k">region certified at D=8 vs 0% full&#8209;dim, same budget</div></div>
+  <div class="stat"><div class="v">64.9% vs 2%</div><div class="k">learned transport vs PCA on the nonlinear plant (exp9) &mdash; random: 0%</div></div>
   <div class="stat"><div class="v">59.1%</div><div class="k">arm6 (d=3) certified &mdash; with 8&times; budget; effort tracks d, not D</div></div>
   <div class="stat"><div class="v">8 / 0</div><div class="k">unsafe swaps, naive vs gated, under real fleet aging</div></div>
   <div class="stat"><div class="v">3</div><div class="k">real domains: turbofan fleet, Beijing air, ETTm2 grid</div></div>
@@ -127,6 +127,10 @@ python experiments/exp2_shadow.py        # gated hot-swap under plant drift
 python experiments/exp3_tightness.py     # tight trace vs Cauchy-Schwarz
 python experiments/exp4_realtrend.py     # NASA C-MAPSS fleet (Kaggle)
 python experiments/exp5_airquality.py    # Beijing air quality (Kaggle)
+python experiments/exp6_grid.py          # ETTm2 electricity transformer (Kaggle)
+python experiments/exp7_baselines.py     # PCA / random-projection baselines, real data
+python experiments/exp8_validation.py    # identification floors, CIs, ablations, seeds
+python experiments/exp9_nonlinear.py     # learned vs fixed maps on the nonlinear plant
 python tools/figures.py                  # regenerate figures from results/</code></pre>
 
 <h2 id="how">How it works</h2>
