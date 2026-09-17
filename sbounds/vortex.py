@@ -109,8 +109,11 @@ class VortexStreet:
 
     def diffusion(self, x: torch.Tensor) -> torch.Tensor:
         # Chorin core walk: sqrt(2 nu) per coordinate, isotropic, constant.
+        # Convention of the other plants: batched (..., D, D).
         s = (2.0 * self.nu) ** 0.5
-        return torch.eye(self.dim, dtype=torch.float64) * s
+        lead = x.shape[:-1]
+        eye = torch.eye(self.dim, dtype=x.dtype).expand(lead + (self.dim, self.dim))
+        return eye * s
 
     def equilibrium(self) -> torch.Tensor:
         return self.x_star
