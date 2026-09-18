@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>stochastic-latent-bounds</title>
+  <meta name="description" content="Sound stochastic Lyapunov certificates for high-dimensional physical systems via invertible latent transports">
+  <style>
+    body { background-color:#fff; padding:50px; font:14px/1.5 "Noto Sans","Helvetica Neue",Helvetica,Arial,sans-serif; color:#727272; font-weight:400; }
+    h1,h2,h3,h4,h5,h6 { color:#222; margin:0 0 20px; }
+    p,ul,ol,table,pre,dl { margin:0 0 20px; }
+    h1,h2,h3 { line-height:1.1; }
+    h1 { font-size:28px; } h2 { color:#393939; } h3 { color:#494949; }
+    a { color:#267CB9; text-decoration:none; }
+    a:hover,a:focus { color:#069; font-weight:bold; }
+    strong { color:#222; font-weight:700; }
+    .wrapper { width:860px; margin:0 auto; }
+    header { width:270px; float:left; position:fixed; -webkit-font-smoothing:subpixel-antialiased; }
+    header h1 a { color:#222; }
+    section { width:500px; float:right; padding-bottom:50px; }
+    code,pre { font-family:Monaco,"Bitstream Vera Sans Mono","Lucida Console",Terminal,Consolas,"Liberation Mono","DejaVu Sans Mono",monospace; color:#333; }
+    pre { padding:8px 15px; background:#f8f8f8; border-radius:5px; border:1px solid #e5e5e5; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:5px 10px; border-bottom:1px solid #e5e5e5; }
+    dt { color:#444; font-weight:700; }
+    th { color:#444; }
+    img { max-width:100%; }
+    figcaption { font-size:11px; color:#777; margin-top:4px; }
+    figure { margin:0 0 20px; }
+    hr { border:0; background:#e5e5e5; height:1px; margin:0 0 20px; }
+    footer { width:270px; float:left; position:fixed; bottom:50px; -webkit-font-smoothing:subpixel-antialiased; }
+    .formula { font-family:Monaco,Consolas,"Liberation Mono",monospace; font-size:12.5px; background:#f8f8f8; border-left:3px solid #aa0000; padding:8px 12px; margin:0 0 20px; overflow-x:auto; }
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:6px; margin:0 0 20px; }
+    .stat { border:1px solid #e5e5e5; border-radius:5px; padding:6px 8px; }
+    .stat .v { font-size:15px; color:#222; font-weight:700; }
+    .stat .k { font-size:10px; color:#777; line-height:1.35; margin-top:2px; }
+    .badges { color:#777; }
+    .badges span { border:1px solid #e5e5e5; border-radius:999px; padding:1px 9px; margin-right:5px; font-size:11px; display:inline-block; }
+    @media print, screen and (max-width: 960px) {
+      div.wrapper { width:auto; margin:0; }
+      header,section,footer { float:none; position:static; width:auto; }
+      header { padding-right:320px; }
+      section { border:1px solid #e5e5e5; border-width:1px 0; padding:20px 0; margin:0 0 20px; }
+    }
+    @media print, screen and (max-width: 720px) {
+      body { word-wrap:break-word; padding:30px; } header { padding:0; }
+    }
+    @media print, screen and (max-width: 480px) { body { padding:15px; } }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+<header>
+  <h1><a href="index.html">stochastic&#8209;latent&#8209;bounds</a></h1>
+  <p>Sound stochastic Lyapunov certificates for high&#8209;dimensional physical systems, via invertible latent transports</p>
+  <p class="view"><a href="https://github.com/sehajr-singhs/stochastic-latent-bounds">View My GitHub Profile</a></p>
+  <strong><a href="index.html">Overview</a></strong><br>
+  <strong><a href="results.html">Results</a></strong><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#tightness">Tightness (exp3)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#scaling">Scaling (exp1)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#hotswap">Hot&#8209;swap gate (exp2)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#ladder">Effort ladder (exp1b)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#cmapss">C&#8209;MAPSS fleet (exp4)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#airquality">Air quality (exp5)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#grid">Grid physics (exp6)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#baselines">Transport baselines (exp7)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#nonlinear">Nonlinear separation test (exp9)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#supremacy">Supremacy at D=200 (exp10)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#fluid">Vortex street, fluid domain (exp12)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
+  <strong><a href="paper.html">Paper</a></strong><br>
+  <strong><a href="math.html">Mathematics</a></strong><br>
+  <strong><a href="api.html">API</a></strong><br>
+</header>
+
+<section>
+<h1>Certified stochastic stability at scale: factorised Lyapunov verification for high-dimensional physical systems</h1>
+<h2>Abstract</h2>
+<p>Deploying learned controllers and monitors on physical infrastructure requires stability certificates, yet classical Lyapunov certification scales exponentially with system dimension — the curse of dimensionality that keeps rigorous guarantees out of the very systems that need them most. Here we introduce a factorised certification scheme that separates a high-dimensional physical state into a low-dimensional certified subspace of dimension $d$ and an orthogonal residual, and verifies the stochastic Lyapunov inequality over the <em>entire</em> region by interval branch-and-bound in the factorised coordinates. The scheme is sound by construction (Theorem 1), complete under refinement (Theorem 2), and robust to identification error in the plant model (Theorem 3). An invertible neural transport learns coordinates in which the certified subspace captures the dominant dynamics; on a nonlinear 8-dimensional plant where principal-component and random projections certify 2.0% and 0.0% of the operating region, the learned transport certifies 64.9% with certified bounds two orders of magnitude tighter. Scaling ladders from $D=8$ to $D=200$ hold certification cost fixed in $d$ while the full-dimensional verifier certifies nothing at any budget. We validate the pipeline on three real datasets (turbofan degradation, electricity-transformer telemetry, a 1404-channel chemical-reactor sensor array) and on a fluid-mechanics plant — the Kármán vortex street evolved by Chorin's random vortex method — and demonstrate that a shadow-network gate built on the certificate rejects every unsafe controller swap on a real regime change while remaining sound. The result is a complete, reproducible pipeline — identification, transport learning, certificate training, sound verification, and gated deployment — that converts certification from an exponentially hard analytic task into a learned-then-verified one.</p>
+<h2>Introduction</h2>
+<p>Every autonomous system that touches the physical world — a turbine controller, a grid stabiliser, a fluid monitor — carries an implicit promise: that its behaviour near the operating point is stable under noise. For linear systems the promise is cheap (spectral radii); for the nonlinear, stochastically forced, partially observed systems that actually get deployed, it is a Lyapunov certificate, and nobody can compute one at scale. Sum-of-squares programming scales poorly past a dozen dimensions; SMT-based neural verifiers inherit the same exponential blow-up in the state dimension $D$. The consequence is structural: certified deployment stops at toy scale precisely where the engineering stakes get real.</p>
+<p>The contribution of this work is a change of coordinates. We do not certify the physical state; we certify a <em>learned, invertible transport</em> $T$ of it. The transport splits the state into a $d$-dimensional certified block $\eta$ (carrying the Lyapunov certificate $V(\eta)$) and a residual block $\rho$ (carrying a fixed quadratic form). Because the Lyapunov function and its generator are verified in the factorised coordinates, the branch-and-bound search that proves the certificate over a continuous region costs $\mathrm{poly}(d)$ per node rather than $\mathrm{poly}(D)$ — and the soundness of the split is a theorem, not a heuristic (Theorem 1: the factorised bound is a valid upper bound of the true generator; Theorem 2: the search converges to the true supremum under box refinement; Theorem 3: the certificate tolerates plant model error up to an explicit margin).</p>
+<p>This bridges two communities that rarely meet. The learning community builds expressive dynamics models but validates them by sampling; the verification community produces sound certificates but at dimensions far below real plants. The pipeline here is deliberately both: every neural component is trained against the exact stochastic generator (where an exact one exists) or against identified plants with bootstrap-quantified identification error (where it does not), and every deployment claim is certified by interval arithmetic over the <em>whole</em> region — never by sampled validation alone.</p>
+<h2>Results</h2>
+<h3>A sound factorised certificate</h3>
+<p>The certificate is $W(\eta,\rho) = V(\eta) + \kappa\,\rho^\top Q \rho$ on the transported coordinates, and the claim verified over the region is the generator inequality $\sup ( \mathcal{L}W + \alpha W ) \le \beta + \mathrm{tol}$ with $\beta = \mathcal{L}W(0)$ the measured noise floor. The factorised verifier bounds the transport, its interval Jacobian, and the latent drift on interval hulls — sound by outward-rounded interval arithmetic, and tight enough to certify (full derivations and proofs: <a href="math.html">the formal supplement</a>, Theorems 1–4).</p>
+<h3>The learned transport is what makes nonlinear certification possible</h3>
+<p>On the 4-link arm ($D=8$), where the coordinate map must undo the dynamics' own trigonometric curvature, the three coordinate systems separate decisively — this is the experiment that turns the transport from an implementation detail into the enabling mechanism:</p>
+<table>
+<thead>
+<tr>
+<th>coordinate map</th>
+<th>region certified</th>
+<th>worst certified bound</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>learned invertible transport</strong></td>
+<td><strong>64.9%</strong></td>
+<td>0.20</td>
+</tr>
+<tr>
+<td>PCA</td>
+<td>2.0%</td>
+<td>11.4</td>
+</tr>
+<tr>
+<td>random orthogonal</td>
+<td>0.0%</td>
+<td>49.3</td>
+</tr>
+</tbody>
+</table>
+<p>The complement matters as much as the headline: on linear-Gaussian identified plants (exp7) <em>any</em> orthogonal map certifies 100% — the machinery alone suffices there — so the transport's contribution is exactly the nonlinear regime, where it is decisive.</p>
+<h3>Certification cost is flat in $D$ when it is set by $d$</h3>
+<p>The scaling ladder (exp1) saturates at $D=8$ and the supremacy ladder (exp10) extends it to $D=200$: the factorised verifier's cost per node and its node budgets are set by the latent dimension $d=2$, while the full-dimensional verifier — the honest baseline — certifies 0% at every rung regardless of budget. Scaling-law data and per-arm wall-clock numbers: <a href="results.html#supremacy">results, section 10</a>.</p>
+<h3>Real domains, including a negative result</h3>
+<p>The pipeline runs end-to-end on real telemetry: turbofan degradation (C-MAPSS), air quality, and an electricity-transformer grid (ETTm2), plus a 1404-channel chemical-reactor sensor array at $D=176$ (exp11) — the first real domain above $D=100$. We report a genuine negative result: on the noise-dominated ETTm2 plant the pointwise certificate closes at 0% certified volume, with the mechanism identified (per-cycle noise relative to drift exceeds the certificate's separation margin), while the shadow gate on the same plant remains perfectly sound — zero unsafe swaps against a naive gate's eight. Three domains of heterogeneous difficulty are the honest calibration of what the method certifies and what it cannot; the reactor-scale era probes quantify exactly what a real regime change does to a deployed certificate (<a href="results.html#reactor">results, section 11</a>).</p>
+<h3>A fluid-mechanics grand-challenge plant</h3>
+<p>The fluid domain (exp12) is the Kármán vortex street evolved by Chorin's random vortex method — the classical particle discretisation of 2D Navier–Stokes: $n=50$ vortices ($D=100$) advected by the exact Biot–Savart kernel with Lamb–Oseen cores, closed by window flushing, forced by the Brownian core walk $\sqrt{2\nu}\,dW$ that models viscous diffusion. The drift plant moves the street off its stability optimum ($b/h$: 0.281 → 0.45) and into an $8\times$ more diffusive regime. This is the first plant in the suite whose drift is a genuine nonlinear fluid-mechanics operator rather than a mechanical or identified-linear model (<a href="results.html#fluid">results, section 12</a>).</p>
+<h3>Statistical rigor as a first-class output</h3>
+<p>Multi-seed stability of the headline separation, bootstrap confidence intervals over region probes (2000 resamples), identification floors on held-out data halves, and ablations that confirm $\beta$ tracks the diffusion scaling exactly as the theory predicts: <a href="results.html#rigor">results, section 13</a>.</p>
+<h2>Discussion</h2>
+<p>The factorisation is a trade, stated plainly: certification is exact only in the $d$-dimensional certified block, and the residual block is covered by a fixed quadratic form whose conservatism grows with residual energy. The d-not-D phenomenon — full-dim certifies nothing at any budget while factorised mode certifies real volume — is both the method's power and its honest boundary: the certificate is as good as the transport's ability to concentrate dynamics into $d$ coordinates. Where noise dominates drift (ETTm2), no coordinate change rescues the margin, and the pipeline says so rather than certifying an illusion. Theorem 3's robustness margin converts that diagnosis into a deployment rule: the certificate remains valid for plants within $\varepsilon$ of the identified one, and the identification floor measures $\varepsilon$ per era.</p>
+<h2>Methods overview</h2>
+<p>Identify (era-wise linear-Gaussian fits with held-out floors) → learn the transport (invertible affine-coupling blocks with $T(x^\star)=0$) → fit the latent world model with the two-stage push-forward refit (frozen-transport second stage; collusion-free) → train the quadratic-led Lyapunov net against exact-generator violations → measure the noise floor $\beta$ → certify by interval branch-and-bound at fixed node budgets → gate deployment with the dual-buffer shadow network. Full mathematics, theorems and proofs: <a href="math.html">the supplement</a>. Every experiment reproduces from committed JSONs and pinned seeds: <a href="results.html#reproduce">reproduce list</a>.</p>
+<h2>Data availability</h2>
+<p>C-MAPSS turbofan, air-quality, and ETTm2 transformer telemetry: public Kaggle mirrors, loaders in <code>sbounds/realsys.py</code>. Chemical-reactor domain-adaptation array: Kaggle <code>eddardd/continuous-stirred-tank-reactor-domain-adaptation</code>. All generated plant data (arms, vortex street) is produced by pinned seeds in the repository.</p>
+<h2>Code availability</h2>
+<p>The full pipeline, interval kernel, verifier, and all experiment drivers are in the repository; each results section states its driver and budget.</p>
+</section>
+
+<footer>
+  <p>Generated by <code>tools/site.py</code> from committed result files.<br>
+  Regenerate: <code>python tools/figures.py &amp;&amp; python tools/site.py</code></p>
+</footer>
+</div>
+</body>
+</html>

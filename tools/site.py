@@ -86,6 +86,7 @@ HEADER = """<!DOCTYPE html>
   &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#fluid">Vortex street, fluid domain (exp12)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
+  <strong><a href="paper.html">Paper</a></strong><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
 </header>
@@ -594,6 +595,17 @@ def build_math():
     print("wrote docs/math.html")
 
 
+def build_paper():
+    """Render docs/paper.md (the manuscript page) into the shared site shell."""
+    import markdown
+    with open(os.path.join(DOCS, "paper.md"), encoding="utf-8") as fh:
+        body = markdown.markdown(fh.read(), extensions=["fenced_code", "tables"])
+    o = [HEADER, "<section>", body, "</section>", FOOTER]
+    with open(os.path.join(DOCS, "paper.html"), "w", encoding="utf-8") as fh:
+        fh.write("\n".join(o))
+    print("wrote docs/paper.html")
+
+
 def build_api():
     o = [HEADER]
     o.append("<section>")
@@ -639,4 +651,5 @@ if __name__ == "__main__":
     os.makedirs(DOCS, exist_ok=True)
     build_results()
     build_math()
+    build_paper()
     build_api()
