@@ -85,6 +85,7 @@ HEADER = """<!DOCTYPE html>
   &nbsp;&nbsp;&nbsp;<a href="results.html#supremacy">Supremacy at D=200 (exp10)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#fluid">Vortex street, fluid domain (exp12)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#robotics">Robot arm, real trajectories (exp13)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="paper.html">Paper</a></strong><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
@@ -513,7 +514,39 @@ def build_results():
                  '(chain: exp10 \u2192 exp12 \u2192 exp11 \u2192 5-seed exp9); this section fills in '
                  'when the run lands.</p>')
 
-    o.append('<h2 id="rigor">13. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
+    o.append('<h2 id="robotics">13. Robotics: SARCOS 7-DoF arm, real trajectories (exp13)</h2>')
+    d13 = _load("exp13_robotics.json")
+    if d13:
+        ident13 = d13.get("identification") or {}
+        sh13 = d13.get("shadow") or {}
+        o.append("<p><strong>Plant.</strong> SARCOS inverse-dynamics trajectories "
+                 f"({ident13.get('D', '?')}-DoF arm, {ident13.get('n_rows', '?')} "
+                 "measured samples): torques as state, consecutive rows as a "
+                 "physical trajectory (23&times; smoother than shuffled rows), "
+                 "split by first-link acceleration regime into nominal and "
+                 "disturbed eras (rel &#8216;&#8216;&Delta;A&#8217;&#8217; = "
+                 f"{ident13.get('dA_rel', '?')}, attractor shift "
+                 f"{ident13.get('attractor_shift', '?')} sd). The largest regime "
+                 "change of any domain in this study.</p>")
+        o.append("<p><strong>Certificate.</strong> "
+                 f"&beta; = {d13.get('beta', 0):.2e} measured; certified volume "
+                 "<strong>"
+                 f"{(d13.get('cert') or {}).get('factor', {}).get('certified_fraction', 0) * 100:.1f}%"
+                 "</strong> of the region (factor mode at the identical "
+                 "budget as full mode).</p>")
+        if sh13:
+            so, sn = (sh13.get("sound") or {}), (sh13.get("naive") or {})
+            o.append("<p><strong>Gate.</strong> Sound "
+                     f"{so.get('unsafe_swaps', '?')} unsafe swaps vs naive "
+                     f"{sn.get('unsafe_swaps', '?')}/"
+                     f"{sn.get('accepted', 0) + sn.get('rejected', '?')} &#8212; "
+                     "facing the largest drift any domain here has thrown at it "
+                     "(3.6&times; dynamics change).</p>")
+    else:
+        o.append('<p class="muted">results/exp13_robotics.json pending '
+                 '(queued behind the exp10/12/11 chain on the compute box).</p>')
+
+    o.append('<h2 id="rigor">14. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
     d8 = _load("exp8_validation.json")
     if d8:
         stab = d8.get("identification_stability")
@@ -573,6 +606,7 @@ def build_results():
 <li><code>python experiments/exp10_scaling.py</code> &mdash; the D=200 computational&#8209;supremacy ladder (100&#8209;link arm).</li>
 <li><code>python experiments/exp11_cstr.py</code> &mdash; chemical&#8209;reactor sensor array, D=176 (expects <code>data/cstr/cstr_rawdata.npy</code> from Kaggle <code>eddardd/continuous-stirred-tank-reactor-domain-adaptation</code>).</li>
 <li><code>python experiments/exp12_fluid.py</code> &amp;&amp; <code>python tools/vortex_fig.py</code> &mdash; the K\u00e1rm\u00e1n vortex street (Chorin random vortex method, D=100) and its figure.</li>
+<li><code>python experiments/exp13_robotics.py</code> &mdash; SARCOS 7-DoF robot arm (expects <code>data/sarcos/</code> from Kaggle <code>viljar/sarcos</code>).</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, rigor, invertibility, loader, and bootstrap&#8209;statistics tests.</li>
 </ul>""")

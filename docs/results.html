@@ -69,6 +69,7 @@
   &nbsp;&nbsp;&nbsp;<a href="results.html#supremacy">Supremacy at D=200 (exp10)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#fluid">Vortex street, fluid domain (exp12)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#robotics">Robot arm, real trajectories (exp13)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="paper.html">Paper</a></strong><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
@@ -198,7 +199,9 @@
 <h2 id="fluid">12. Grand-challenge fluid domain: Kármán vortex street (exp12)</h2>
 <img src="assets/fig12_vortex_street.png" style="max-width:100%;height:auto;margin:6px 0" alt="Karman vortex street: steady configuration, stochastic dotted cloud, drift-speed distributions">
 <p class="muted">results/exp12_fluid.json pending on the compute box (chain: exp10 → exp12 → exp11 → 5-seed exp9); this section fills in when the run lands.</p>
-<h2 id="rigor">13. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
+<h2 id="robotics">13. Robotics: SARCOS 7-DoF arm, real trajectories (exp13)</h2>
+<p class="muted">results/exp13_robotics.json pending (queued behind the exp10/12/11 chain on the compute box).</p>
+<h2 id="rigor">14. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>
 <p><strong>Identification stability.</strong> Fit/holdout parameter agreement on independent data halves: relative ||&Delta;A|| and ||&Delta;&sigma;|| between half&#8209;fits. On C&#8209;MAPSS and air quality the measured era&#8209;drift signals (||&Delta;A|| &asymp; 0.40&ndash;0.48) clear these floors by an order of magnitude, so the reported drift is signal, not identification noise. On ETTm2 the identification itself is era&#8209;dependent (rel ||&Delta;A|| &asymp; 6 across the timeline split), consistent with the noise&#8209;dominated verdict of section 6 &mdash; reported as a finding, not hidden.</p>
 <table>
 <tr><th>domain</th><th>split</th><th>rel ||&Delta;A||</th><th>rel ||&Delta;&sigma;||</th><th></th></tr>
@@ -229,6 +232,7 @@
 <li><code>python experiments/exp10_scaling.py</code> &mdash; the D=200 computational&#8209;supremacy ladder (100&#8209;link arm).</li>
 <li><code>python experiments/exp11_cstr.py</code> &mdash; chemical&#8209;reactor sensor array, D=176 (expects <code>data/cstr/cstr_rawdata.npy</code> from Kaggle <code>eddardd/continuous-stirred-tank-reactor-domain-adaptation</code>).</li>
 <li><code>python experiments/exp12_fluid.py</code> &amp;&amp; <code>python tools/vortex_fig.py</code> &mdash; the Kármán vortex street (Chorin random vortex method, D=100) and its figure.</li>
+<li><code>python experiments/exp13_robotics.py</code> &mdash; SARCOS 7-DoF robot arm (expects <code>data/sarcos/</code> from Kaggle <code>viljar/sarcos</code>).</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, rigor, invertibility, loader, and bootstrap&#8209;statistics tests.</li>
 </ul>
