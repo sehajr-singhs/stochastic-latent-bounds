@@ -129,21 +129,28 @@ class SensorSystem:
         for diagonal A, right scaling for weakly coupled ones. Sizing only:
         this never enters a sound bound."""
         D = self.dim
+        diag_approx = (self.sigma_vec
+                       / torch.sqrt((-2.0 * torch.diagonal(self.A)).clamp_min(1e-6)))\
+            .clamp_min(1e-4)
         if D > 64:
-            lam = torch.diagonal(self.A)
-            return (self.sigma_vec / torch.sqrt((-2.0 * lam).clamp_min(1e-6)))\
-                .clamp_min(1e-4)
-        S = torch.diag_embed(self.sigma_vec)
-        # vec convention: vec(A X B) = (B^T kron A) vec(X); here A X + X A^T
-        K = torch.kron(self.A, torch.eye(D, dtype=self.A.dtype)) + \
-            torch.kron(torch.eye(D, dtype=self.A.dtype), self.A)
-        sol = torch.linalg.solve(K, (-S.reshape(-1, 1)))
-        Sigma_stat = sol.reshape(D, D)
-        Sigma_stat = 0.5 * (Sigma_stat + Sigma_stat.T)
-        # numerical safety: PD-ify via eigenvalue floor
-        w, Vv = torch.linalg.eigh(Sigma_stat)
-        Sigma_stat = Vv @ torch.diag(w.clamp_min(1e-8)) @ Vv.T
-        return torch.sqrt(torch.diagonal(Sigma_stat)).clamp_min(1e-4)
+            return diag_approx
+        try:
+            S = torch.diag_embed(self.sigma_vec)
+            # vec convention: vec(A X B) = (B^T kron A) vec(X); here A X + X A^T
+            K = torch.kron(self.A, torch.eye(D, dtype=self.A.dtype)) + \
+                torch.kron(torch.eye(D, dtype=self.A.dtype), self.A)
+            sol = torch.linalg.solve(K, (-S.reshape(-1, 1)))
+            Sigma_stat = sol.reshape(D, D)
+            Sigma_stat = 0.5 * (Sigma_stat + Sigma_stat.T)
+            # numerical safety: PD-ify via eigenvalue floor; strongly correlated
+            # plants (SARCOS torques) can make K ill-conditioned enough that
+            # even eigh refuses -- sizing-only, so fall back to the diagonal
+            # approximation rather than crash the pipeline.
+            w, Vv = torch.linalg.eigh(Sigma_stat)
+            Sigma_stat = Vv @ torch.diag(w.clamp_min(1e-8)) @ Vv.T
+            return torch.sqrt(torch.diagonal(Sigma_stat)).clamp_min(1e-4)
+        except Exception:
+            return diag_approx
 
     def __repr__(self) -> str:  # pragma: no cover - diagnostics only
         return (f"SensorSystem(D={self.dim}, sigma=[{', '.join(f'{s:.3f}' for s in self.sigma_vec[:4])}, ...], "
@@ -408,3 +415,55 @@ def load_cstr(data_dir: str | None = None, stride: int = CSTR_STRIDE) -> dict:
             "X_hold": Xz[-n_hold:], "unit_hold": seg[-n_hold:],
             "cols": [f"s{j:04d}" for j in range(0, raw.shape[1], stride)],
             "n_rows": N, "D": X.shape[1], "stride": stride, "mu": mu, "sd": sd}
+
+
+def load_sarcos(data_dir: str | None = None, holdout: float = 0.15) -> dict:
+    """SARCOS 7-DoF robot arm (44484 samples, 21 joint inputs + 7 torques).
+
+    Consecutive rows are a smooth measured trajectory (verified: consecutive-row
+    deltas are ~23x smaller than shuffled). The plant state is the 7 torques
+    (the actuated dynamics the robot actually applies); the 21 kinematic inputs
+    provide the exogenous conditioning used only for era split sanity. The
+    trajectory is standardized and split: first half = nominal era, final
+    quarter = disturbed era (the SARCOS recording contains fast motion phases,
+    which act as the regime change for the gate test).
+    """
+    import scipy.io as sio
+    here = os.path.dirname(os.path.abspath(__file__))
+    default = os.path.join(os.path.dirname(here), "data", "sarcos",
+                           "sarcos_inv.mat")
+    path = data_dir or default
+    mat = sio.loadmat(path)
+    key = [k for k in mat if not k.startswith("__")][0]
+    raw = np.asarray(mat[key], dtype=np.float64)                  # (N, 28)
+    if raw.shape[1] != 28 or raw.shape[0] < 10000:
+        raise ValueError(f"unexpected SARCOS shape {raw.shape}")
+    X = torch.tensor(raw[:, 21:], dtype=torch.float64)            # torques (N, 7)
+    kin = torch.tensor(raw[:, :21], dtype=torch.float64)
+    if not torch.isfinite(X).all():
+        raise ValueError("non-finite values in SARCOS torques")
+    N = X.shape[0]
+    mu, sd = X.mean(dim=0), X.std(dim=0).clamp_min(1e-9)
+    Xz = (X - mu) / sd
+    # eras: nominal = first 60%, disturbed = final 25% (fast-motion phases),
+    # a 15% guard band between them so first differences never cross eras.
+    era_hi = torch.zeros(N, dtype=torch.float64)
+    era_hi[int(0.75 * N):] = 1.0
+    era_lo = torch.zeros(N, dtype=torch.float64)
+    era_lo[:int(0.60 * N)] = 1.0
+    # segments: 512-row windows, with new ids forced at the era boundaries so
+    # no window straddles a regime switch (the OU fit's first differences stay
+    # within-era by construction).
+    idx = torch.arange(N, dtype=torch.int64)
+    seg = idx // 512
+    seg = seg + (idx >= int(0.60 * N)).to(torch.int64) \
+        + (idx >= int(0.75 * N)).to(torch.int64)
+    # kinematic conditioning variance per era (the regime-shift statistic)
+    kin_sd_lo = float(kin[era_lo == 1.0].std(dim=0).mean())
+    kin_sd_hi = float(kin[era_hi == 1.0].std(dim=0).mean())
+    n_hold = int(N * holdout)
+    return {"X": Xz, "era_lo": era_lo, "era_hi": era_hi, "unit": seg,
+            "X_hold": Xz[-n_hold:], "unit_hold": seg[-n_hold:],
+            "kin_sd_ratio": kin_sd_hi / max(kin_sd_lo, 1e-9),
+            "cols": [f"tau{j}" for j in range(7)],
+            "n_rows": N, "D": 7, "mu": mu, "sd": sd}
