@@ -84,6 +84,7 @@ HEADER = """<!DOCTYPE html>
   &nbsp;&nbsp;&nbsp;<a href="results.html#nonlinear">Nonlinear separation test (exp9)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#supremacy">Supremacy at D=200 (exp10)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#reactor">Reactor scale, D=176 (exp11)</a><br>
+  &nbsp;&nbsp;&nbsp;<a href="results.html#fluid">Vortex street, fluid domain (exp12)</a><br>
   &nbsp;&nbsp;&nbsp;<a href="results.html#rigor">Rigor: CIs, ablations (exp8)</a><br>
   <strong><a href="math.html">Mathematics</a></strong><br>
   <strong><a href="api.html">API</a></strong><br>
@@ -471,7 +472,47 @@ def build_results():
     else:
         o.append('<p class="muted">results/exp11_cstr.json not present.</p>')
 
-    o.append('<h2 id="rigor">12. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
+    o.append('<h2 id="fluid">12. Grand-challenge fluid domain: K\u00e1rm\u00e1n vortex street (exp12)</h2>')
+    d12 = _load("exp12_fluid.json")
+    o.append('<img src="assets/fig12_vortex_street.png" style="max-width:100%;height:auto;margin:6px 0" '
+             'alt="Karman vortex street: steady configuration, stochastic dotted cloud, drift-speed distributions">')
+    if d12:
+        pl = d12.get("plants") or {}
+        c = d12.get("cert") or {}
+        fac, full = c.get("factor") or {}, c.get("full") or {}
+        era = d12.get("era") or {}
+        sh = d12.get("shadow") or {}
+        rows = [["nominal street (b/h=0.281)", _fmt((era.get("nominal") or {}).get("viol_frac")), "&mdash;"],
+                ["disturbed street (b/h=0.45, \u03bd \u00d78)", _fmt((era.get("disturbed") or {}).get("viol_frac")),
+                 _fmt(pl.get("drift_gap"), 2)]]
+        o.append("<p><strong>The fluid plant is a real Navier\u2013Stokes scheme.</strong> "
+                 "Chorin's random vortex method: n=50 discrete vortices "
+                 "(D=100) advected by the exact 2D Euler Biot\u2013Savart kernel with "
+                 "Lamb\u2013Oseen cores, closed by observation-window flushing, and driven "
+                 "by the Brownian core walk \u221a(2\u03bd)&nbsp;dW that models viscous "
+                 "diffusion \u2014 the classical particle discretisation of 2D "
+                 "Navier\u2013Stokes. The drift plant has moved off the K\u00e1rm\u00e1n "
+                 "stability optimum (b/h 0.281 \u2192 0.45) into a far more diffusive "
+                 "regime (\u03bd \u00d78); the drift\u2013speed distributions in the figure "
+                 "are the physical signal the gate must separate. Certificate trained "
+                 "on the nominal street: factor mode <strong>"
+                 f"{_fmt(fac.get('certified_fraction'))}</strong> vs full mode "
+                 f"{_fmt(full.get('certified_fraction'))} at {fac.get('nodes', '?')} "
+                 "nodes; \u03b2 = "
+                 f"{_fmt(d12.get('beta'), 3, True)}.</p>")
+        o.append(_table(["era probe", "pointwise viol. frac.", "drift gap \u2016F\u2016"], rows))
+        so, sn = (sh.get("sound") or {}), (sh.get("naive") or {})
+        o.append("<p>Shadow gate with the disturbed street as the real drift: sound gate "
+                 f"<strong>{so.get('unsafe_swaps', '?')} unsafe swaps</strong> "
+                 f"({so.get('accepted', '?')}/{so.get('accepted', 0) + so.get('rejected', '?')} swaps accepted, "
+                 f"{so.get('fallback_rounds', '?')} fallback rounds) vs naive gate "
+                 f"{sn.get('unsafe_swaps', '?')}/{sn.get('accepted', 0) + sn.get('rejected', '?')} unsafe.</p>")
+    else:
+        o.append('<p class="muted">results/exp12_fluid.json pending on the compute box '
+                 '(chain: exp10 \u2192 exp12 \u2192 exp11 \u2192 5-seed exp9); this section fills in '
+                 'when the run lands.</p>')
+
+    o.append('<h2 id="rigor">13. Statistical rigor: identification stability, CIs, ablations (exp8)</h2>')
     d8 = _load("exp8_validation.json")
     if d8:
         stab = d8.get("identification_stability")
@@ -530,6 +571,7 @@ def build_results():
 <li><code>python experiments/exp9_nonlinear.py</code> &mdash; learned vs fixed maps on the nonlinear N&#8209;link plant.</li>
 <li><code>python experiments/exp10_scaling.py</code> &mdash; the D=200 computational&#8209;supremacy ladder (100&#8209;link arm).</li>
 <li><code>python experiments/exp11_cstr.py</code> &mdash; chemical&#8209;reactor sensor array, D=176 (expects <code>data/cstr/cstr_rawdata.npy</code> from Kaggle <code>eddardd/continuous-stirred-tank-reactor-domain-adaptation</code>).</li>
+<li><code>python experiments/exp12_fluid.py</code> &amp;&amp; <code>python tools/vortex_fig.py</code> &mdash; the K\u00e1rm\u00e1n vortex street (Chorin random vortex method, D=100) and its figure.</li>
 <li><code>python experiments/exp3_tightness.py</code> &mdash; tightness sweep.</li>
 <li><code>python -m pytest tests/ -q</code> &mdash; soundness, rigor, invertibility, loader, and bootstrap&#8209;statistics tests.</li>
 </ul>""")
